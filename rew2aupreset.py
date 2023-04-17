@@ -4,9 +4,12 @@
 import struct
 import sys
 import base64
+import pathlib
 from string import Template
 
-aupreset_template = Template(
+PRESET_DIR = pathlib.PosixPath("~/Library/Audio/Presets/Apple/AUNBandEQ").expanduser()
+
+AUPRESET_TEMPLATE = Template(
     '\
 <?xml version="1.0" encoding="UTF-8"?>\n\
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n\
@@ -110,27 +113,67 @@ def iir2data(iir: IIR) -> str:
     len_text = len(text) // 67
     slices = ["\t{}\n".format(text[i * 67 : (i + 1) * 67]) for i in range(len_text)]
     slices += ["\t{}".format(text[len_text * 67 :])]
-    return "".join(slices)
+
+    return 0, "".join(slices)
 
 
 def iir2aupreset(iir: list, name: str) -> tuple[int | str]:
     status, data = iir2data(iir)
-    status, templ = aupreset_template.substitute(data=data, name=name, number_of_bands=16)
-    return status, templ
+    if status != 0:
+        return status, None
+    return 0, AUPRESET_TEMPLATE.substitute(data=data, name=name, number_of_bands=16)
+
+
+def usage():
+    print("Usage:")
+    print("{} -i eq.txt".format(sys.argv[0]))
+    print("It will copy output to stdout\n")
+    print("{} -i eq.txt -o eq.aupreset".format(sys.argv[0]))
+    print("It will  copy output to eq.aupreset\n")
+    print("{} -i eq.txt -install".format(sys.argv[0]))
+    print("It will copy output to ~/Library/Audio/Presets/Apple/AUNBandEQ/eq.aupreset")
 
 
 def main():
-    if len(sys.argv) != 2:
+    if (
+        (len(sys.argv) < 3 or len(sys.argv) > 5)
+        or sys.argv[1] != "-i"
+        or (len(sys.argv) > 3 and sys.argv[3] not in ("-o", "-install"))
+    ):
+        usage()
         sys.exit(-1)
-    rew_filename = sys.argv[1]
+    rew_filename = sys.argv[2]
+    rew_base = rew_filename
+    dotpos = rew_filename.rfind(".")
+    if dotpos != -1:
+        rew_base = rew_filename[:dotpos]
 
     status, iir = rew2iir(rew_filename)
     if status != 0 or len(iir) == 0:
         return 1
 
     status, aupreset = iir2aupreset(iir, "test")
-    print(aupreset)
-    return status
+
+    if status != 0:
+        return status
+
+    if len(sys.argv) == 3:
+        print(aupreset)
+        return 0
+
+    output = "{}.aupreset".format(rew_base)
+    if len(sys.argv) == 4:
+        PRESET_DIR.mkdir(mode=0o755, parents=True, exist_ok=True)
+        output = "{}/{}.aupreset".format(PRESET_DIR, pathlib.Path(rew_base).name)
+
+    print(output)
+
+    try:
+        with open(output, "w", encoding="ascii") as fd:
+            fd.write(aupreset)
+    except FileNotFoundError:
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

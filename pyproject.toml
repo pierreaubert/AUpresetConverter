@@ -71,6 +71,6 @@ fixable = ["F", "N", "YTT", "S", "B", "FBT", "EM", "ISC", "EXE", "G", "Q", "T20"
 unfixable = []
 
 [tool.pyright]
-# ...
+include = ["."]
 venvPath = "."
 venv = ".venv"

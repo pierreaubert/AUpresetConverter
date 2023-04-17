@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import struct
-import sys
 import base64
 import pathlib
 from string import Template
+import struct
+import sys
+from typing import Literal
 
 PRESET_DIR = pathlib.PosixPath("~/Library/Audio/Presets/Apple/AUNBandEQ").expanduser()
 
@@ -38,11 +39,12 @@ $data\n\
 '
 )
 
-# type of IIR
+# types
 IIR = list[dict[str, int | float]]
+STATUS = Literal[0] | Literal[1]
 
 
-def rew2iir(filename: str) -> tuple[int, IIR]:
+def rew2iir(filename: str) -> tuple[STATUS, IIR]:
     # has_width = False
     iir = []
     with open(filename, "r", encoding="ASCII") as fd:
@@ -65,7 +67,7 @@ def rew2iir(filename: str) -> tuple[int, IIR]:
     return 0, iir
 
 
-def iir2data(iir: IIR) -> str:
+def iir2data(iir: IIR) -> tuple[STATUS, str]:
     """Build the data field from an iir"""
 
     def type2value(t: str) -> float:
@@ -84,7 +86,7 @@ def iir2data(iir: IIR) -> str:
     params = {}
     for i, current_iir in enumerate(iir):
         params["{}".format(1000 + i)] = 0.0  # True
-        params["{}".format(2000 + i)] = type2value(current_iir["type"])
+        params["{}".format(2000 + i)] = type2value(str(current_iir["type"]))
         params["{}".format(3000 + i)] = float(current_iir["freq"])
         params["{}".format(4000 + i)] = float(current_iir["gain"])
         params["{}".format(5000 + i)] = float(current_iir["width"])
@@ -117,10 +119,10 @@ def iir2data(iir: IIR) -> str:
     return 0, "".join(slices)
 
 
-def iir2aupreset(iir: list, name: str) -> tuple[int | str]:
+def iir2aupreset(iir: list, name: str) -> tuple[STATUS, str]:
     status, data = iir2data(iir)
     if status != 0:
-        return status, None
+        return status, ""
     return 0, AUPRESET_TEMPLATE.substitute(data=data, name=name, number_of_bands=16)
 
 

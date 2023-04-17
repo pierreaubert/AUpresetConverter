@@ -1,0 +1,18 @@
+AU_N-Band_EQ
+Number	Enabled	Control	Type	Frequency(Hz)	Gain(dB)	BW_Oct	Bandwidth(Hz)	TargetT60(ms)	FilterT60(ms)	
+1	True	Auto	PK	58.50	-4.30	0.29	11.78	
+2	True	Auto	PK	111.5	5.00	1.39	111.6	
+3	True	Auto	PK	124.5	-12.10	0.29	25.07	
+4	True	Auto	PK	225.0	-3.60	0.30	46.87	
+5	True	Auto	PK	275.0	5.00	0.25	47.71	
+6	True	Auto	PK	298.0	-5.60	0.41	84.97	
+7	True	Auto	PK	444.0	1.40	0.19	58.52	
+8	True	Auto	PK	1014	2.90	0.30	211.2	
+9	True	Auto	PK	1438	-5.80	0.33	329.6	
+10	True	Auto	PK	6240	-4.20	0.30	1300	
+11	True	Auto	PK	9948	-4.40	0.99	6961	
+12	True	Auto	PK	15918	-2.50	1.39	15937	
+13	True	Auto	None	
+14	True	Auto	None	
+15	True	Auto	None	
+16	True	Auto	None

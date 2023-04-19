@@ -14,7 +14,7 @@ but it is very error prone and boring.
 ./rew2aupreset.py -i eq.txt
 ```
 
-will copy the AUpreset on the standard output.
+will copy the AUpreset to the standard output.
 
 you may want to copy it where most DAW can find it:
 
@@ -28,7 +28,7 @@ you can redirect to a file with the -o flag.
 ./rew2aupreset.py -i eq.txt -install
 ```
 
-will copy the AUpreset where DAWs(+) expect to find them (++).
+will copy the AUpreset where DAWs(1) expect to find them (2).
 
-(+) at least Reaper and Logic
-(++) ~/Library/Audio/Presets/Apple/AUNBandEQ
+- (1) at least Reaper and Logic will
+- (2) ~/Library/Audio/Presets/Apple/AUNBandEQ

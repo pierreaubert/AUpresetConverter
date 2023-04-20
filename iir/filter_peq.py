@@ -19,9 +19,11 @@ def peq_build(freq: Vector, peq: Peq) -> Vector:
     return current_filter
 
 
-def peq_preamp_gain(peq: Peq) -> float:
+def peq_preamp_gain_conservative(peq: Peq) -> float:
     """compute preamp gain for a peq
 
+    Computation takes into account that the processor could clip for each EQ and not only for the sum of the PEQs
+    It depends how it is implemented. For a computer, the other estimation is better.
     Note that we add 0.2 dB to have a margin for clipping
     """
     freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 1000)
@@ -30,11 +32,30 @@ def peq_preamp_gain(peq: Peq) -> float:
     if len(peq) == 0:
         return 0.0
     for _w, iir in peq:
-        individual = max(individual, np.max(peq_build(freq, [(1.0, iir)])))
+        individual = max(
+            individual,
+            max(
+                0.0,  # if negative doesn't count
+                np.max(peq_build(freq, [(1.0, iir)])),
+            ),
+        )
     overall = np.max(np.clip(spl, 0, None))
     gain = -(max(individual, overall) + 0.2)
-    # print('debug preamp gain: %f'.format(gain))
-    return gain
+    print(
+        "debug preamp gain: {:.2f} (overall {:.2f} individual {:0.2f}".format(
+            gain, overall, individual
+        )
+    )
+    return -overall
+
+
+def peq_preamp_gain(peq: Peq) -> float:
+    """compute preamp gain for a peq"""
+    freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 1000)
+    spl = np.array(peq_build(freq, peq))
+    if len(peq) == 0:
+        return 0.0
+    return -np.max(np.clip(spl, 0, None))
 
 
 def peq_print(peq: Peq) -> None:

@@ -2,14 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import base64
-import math
 import pathlib
 from string import Template
 import struct
 import sys
 from typing import Literal
 
-PRESET_DIR = pathlib.PosixPath("~/Library/Audio/Presets/Apple/AUNBandEQ").expanduser()
+from iir.filter_iir import Biquad, q2bw, bw2q
+from iir.filter_peq import peq_preamp_gain, Peq
+
+SRATE = 48000
+
+PRESET_DIR = pathlib.PosixPath(
+    "~/Library/Audio/Presets/Apple/AUNBandEQ"
+).expanduser()
 
 AUPRESET_TEMPLATE = Template(
     '\
@@ -68,15 +74,6 @@ def guess_format(lines: list[str]) -> str:
     return "Unknown"
 
 
-def bw2q(bw: float) -> float:
-    return math.sqrt(math.pow(2, bw)) / (math.pow(2, bw) - 1.0)
-
-
-def q2bw(q: float) -> float:
-    q2 = (2.0 * q * q + 1) / (2.0 * q * q)
-    return math.log(q2 + math.sqrt(q2 * q2 - 1.0)) / math.log(2.0)
-
-
 def parse_aunbandeq(lines: list[str]) -> tuple[STATUS, IIR]:
     iir = []
     for line in lines:
@@ -95,14 +92,13 @@ def parse_aunbandeq(lines: list[str]) -> tuple[STATUS, IIR]:
 
 
 def parse_apo(lines: list[str]) -> tuple[STATUS, IIR]:
-    preamp_gain = None
     iir = []
     for line in lines:
         tokens = line.split()
         len_tokens = len(tokens)
-        if len_tokens == 3 and tokens[0] == "Preamp" and tokens[2] == "dB":
-            preamp_gain = float(tokens[1])
-            continue
+        # if len_tokens == 3 and tokens[0] == "Preamp" and tokens[2] == "dB":
+        #    preamp_gain = float(tokens[1])
+        #    continue
         if len_tokens == 12 and tokens[0] == "Filter" and tokens[2] == "ON":
             iir.append(
                 {
@@ -115,6 +111,27 @@ def parse_apo(lines: list[str]) -> tuple[STATUS, IIR]:
             )
             continue
     return 0, iir
+
+
+def iir2peq(iir: IIR) -> Peq:
+    peq = []
+    for biquad in iir:
+        biquad_type = {
+            "PK": Biquad.PEAK,
+            "LP": Biquad.LOWPASS,
+            "HP": Biquad.HIGHPASS,
+            "LS": Biquad.LOWSHELF,
+            "HS": Biquad.HIGHSHELF,
+            "BP": Biquad.BANDPASS,
+        }.get(str(biquad["type"]))
+        if biquad_type is None:
+            continue
+        freq = biquad["freq"]
+        gain = biquad["gain"]
+        width = biquad["width"]
+        q = bw2q(width)
+        peq.append((1.0, Biquad(biquad_type, freq, SRATE, q, gain)))
+    return peq
 
 
 def rew2iir(filename: str) -> tuple[STATUS, IIR]:
@@ -144,6 +161,9 @@ def iir2data(iir: IIR) -> tuple[STATUS, str]:
     # print(len_iir)
     # print(iir)
 
+    peq = iir2peq(iir)
+    preamp_gain = peq_preamp_gain(peq)
+
     params = {}
     for i, current_iir in enumerate(iir):
         params["{}".format(1000 + i)] = 0.0  # True
@@ -163,7 +183,7 @@ def iir2data(iir: IIR) -> tuple[STATUS, str]:
     # some black magic, data is padded, the only important values are
     # 3. number of parameters + 1
     # 5. db_gain
-    buffer = struct.pack(">llllf", 0, 0, 81, 0, 0.0)
+    buffer = struct.pack(">llllf", 0, 0, 81, 0, preamp_gain)
 
     # add pairs of (param_id, value) in big endian
     for param_id, value in params.items():
@@ -174,7 +194,9 @@ def iir2data(iir: IIR) -> tuple[STATUS, str]:
 
     # add \t and slice in chunks of 67 chars
     len_text = len(text) // 67
-    slices = ["\t{}\n".format(text[i * 67 : (i + 1) * 67]) for i in range(len_text)]
+    slices = [
+        "\t{}\n".format(text[i * 67 : (i + 1) * 67]) for i in range(len_text)
+    ]
     slices += ["\t{}".format(text[len_text * 67 :])]
 
     return 0, "".join(slices)
@@ -185,7 +207,9 @@ def iir2aupreset(iir: list, name: str) -> tuple[STATUS, str]:
     if status != 0:
         return status, ""
     # TODO: investigate why only 16 works
-    return 0, AUPRESET_TEMPLATE.substitute(data=data, name=name, number_of_bands=16)
+    return 0, AUPRESET_TEMPLATE.substitute(
+        data=data, name=name, number_of_bands=16
+    )
 
 
 def usage():
@@ -195,7 +219,9 @@ def usage():
     print("{} -i eq.txt -o eq.aupreset".format(sys.argv[0]))
     print("It will  copy output to eq.aupreset\n")
     print("{} -i eq.txt -install".format(sys.argv[0]))
-    print("It will copy output to ~/Library/Audio/Presets/Apple/AUNBandEQ/eq.aupreset")
+    print(
+        "It will copy output to ~/Library/Audio/Presets/Apple/AUNBandEQ/eq.aupreset"
+    )
 
 
 def main():

@@ -4,7 +4,7 @@
 import struct
 import sys
 from base64 import b64decode
-import xml.etree.ElementTree as ElementTree
+import defusedxml.ElementTree as ElementTree
 
 
 def iir_type_2_string(iir_type: float) -> str:
@@ -44,10 +44,10 @@ def main():
     lines = "".join([a.strip() for a in ascii])
     bigendian = b64decode(lines)
     # debugging begining of buffer
-    for i in range(0, 5):
-        debug_i = struct.unpack(">L", bigendian[i * 4 : i * 4 + 4])
-        debug_f = struct.unpack(">f", bigendian[i * 4 : i * 4 + 4])
-        print("{:1d} {} {}".format(i, debug_i, debug_f))
+    # for i in range(0, 5):
+    #    debug_i = struct.unpack(">L", bigendian[i * 4 : i * 4 + 4])
+    #    debug_f = struct.unpack(">f", bigendian[i * 4 : i * 4 + 4])
+    #    print("{:1d} {} {}".format(i, debug_i, debug_f))
 
     i = 2
     count = struct.unpack(">L", bigendian[i * 4 : i * 4 + 4])[0] - 1
@@ -61,7 +61,7 @@ def main():
         offset = 20 + i * 8
         param_id = struct.unpack(">L", bigendian[offset : offset + 4])
         value_f = struct.unpack(">f", bigendian[offset + 4 : offset + 8])
-        print("param_id {} value {}".format(param_id, value_f))
+        # print("param_id {} value {}".format(param_id, value_f))
         preset["{}".format(param_id[0])] = value_f[0]
 
     for i in range(0, 15):
@@ -72,7 +72,11 @@ def main():
         width = preset["{}".format(5000 + i)]
         print(
             "{:2s} {:3s} {:5.0f}Hz {:+2.2f}dB {:1.2f}".format(
-                active_2_string(active), iir_type_2_string(iir_type), freq, gain, width
+                active_2_string(active),
+                iir_type_2_string(iir_type),
+                freq,
+                gain,
+                width,
             )
         )
     return 0

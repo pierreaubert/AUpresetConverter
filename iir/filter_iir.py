@@ -54,13 +54,13 @@ class Biquad:
         # some control over parameters
         if typ == Biquad.NOTCH:
             self.q = 30.0
-        elif self.q == 0.0 and type in (
+        elif self.q == 0.0 and typ in (
             Biquad.BANDPASS,
             Biquad.HIGHPASS,
             Biquad.LOWPASS,
         ):
             self.q = 1.0 / math.sqrt(2.0)
-        elif self.q == 0.0 and type in (Biquad.LOWSHELF, Biquad.HIGHSHELF):
+        elif self.q == 0.0 and typ in (Biquad.LOWSHELF, Biquad.HIGHSHELF):
             self.q = bw2q(0.9)
         # initialize the 5 coefs
         self.a0 = self.a1 = self.a2 = 0
@@ -73,7 +73,7 @@ class Biquad:
         omega = 2 * math.pi * self.freq / self.srate
         sn = math.sin(omega)
         cs = math.cos(omega)
-        alpha = sn / (2 * q)
+        alpha = sn / (2 * self.q)
         beta = math.sqrt(a + a)
         # compute
         types[typ](self, a, omega, sn, cs, alpha, beta)

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 import math
 import logging
-from typing import Any
-
-from numpy.typing import ArrayLike
 import numpy as np
 
 

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 import math
-from typing import Any
 
 import numpy as np
 import numpy.typing as npt
+
+from types import MappingProxyType
 
 # Vector = npt.NDArray[np.floating[Any]]
 Vector = npt.ArrayLike
@@ -22,15 +23,17 @@ class Biquad:
     # pretend enumeration
     LOWPASS, HIGHPASS, BANDPASS, PEAK, NOTCH, LOWSHELF, HIGHSHELF = range(7)
 
-    type2name = {
-        LOWPASS: ["Lowpass", "LP"],
-        HIGHPASS: ["Highpass", "HP"],
-        BANDPASS: ["Bandpath", "BP"],
-        PEAK: ["Peak", "PK"],
-        NOTCH: ["Notch", "NO"],
-        LOWSHELF: ["Lowshelf", "LS"],
-        HIGHSHELF: ["Highshelf", "HS"],
-    }
+    type2name = MappingProxyType(
+        {
+            LOWPASS: ["Lowpass", "LP"],
+            HIGHPASS: ["Highpass", "HP"],
+            BANDPASS: ["Bandpath", "BP"],
+            PEAK: ["Peak", "PK"],
+            NOTCH: ["Notch", "NO"],
+            LOWSHELF: ["Lowshelf", "LS"],
+            HIGHSHELF: ["Highshelf", "HS"],
+        }
+    )
 
     def __init__(
         self, typ: int, freq: float, srate: int, q: float, db_gain: float = 0

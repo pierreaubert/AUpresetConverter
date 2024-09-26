@@ -31,10 +31,8 @@ def peq_preamp_gain_conservative(peq: Peq) -> float:
     for _w, iir in peq:
         individual = max(
             individual,
-            max(
-                0.0,  # if negative doesn't count
-                np.max(peq_build(freq, [(1.0, iir)])),
-            ),
+            0.0,  # if negative doesn't count
+            np.max(peq_build(freq, [(1.0, iir)])),
         )
     overall = np.max(np.clip(spl, 0, None))
     gain = -(max(individual, overall) + 0.2)

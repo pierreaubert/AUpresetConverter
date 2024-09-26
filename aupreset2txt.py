@@ -41,6 +41,9 @@ def main():
     root = tree.getroot()
     data = root.findall("./dict/data")
     ascii = data[0].text
+    if not ascii:
+        print("{} is empty".format(data))
+        return 1
     lines = "".join([a.strip() for a in ascii])
     bigendian = b64decode(lines)
     # debugging begining of buffer

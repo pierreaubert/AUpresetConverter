@@ -1,15 +1,13 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
-import pathlib
 
 import reflex as rx
 
 from rxconfig import config
 
-from .converter import lines2iir, iir2aupreset, PRESET_DIR
+from .converter import lines2iir, iir2aupreset
 
-def preset_name(name:str) -> str:
+
+def preset_name(name: str) -> str:
     dotpos = name.rfind(".")
     if dotpos != -1:
         return name[:dotpos]
@@ -21,7 +19,7 @@ class Converter(rx.State):
 
     # list of name, input/output
     data: list[tuple[str, str, str]] = ()
-    err_msg: str = ''
+    err_msg: str = ""
 
     async def handle_upload(self, files: list[rx.UploadFile]):
         self.data = []
@@ -38,25 +36,24 @@ class Converter(rx.State):
             preset = preset_name(preset_name(file.filename))
             status, output = iir2aupreset(iir, preset)
             if status != 0:
-                self.err_msg = "failed to generate the preset {} status {}".format(preset, status)
+                self.err_msg = (
+                    "failed to generate the preset {} status {}".format(
+                        preset, status
+                    )
+                )
                 return
             self.data.append([file.filename, input, output])
-
 
     async def save(self, filename):
         for file, _, output_data in self.data:
             if file == filename:
-                output_filename = '{}.aupreset'.format(
+                output_filename = "{}.aupreset".format(
                     preset_name(filename),
                 )
-                return rx.download(
-                    data=output_data,
-                    filename=output_filename
-                )
+                return rx.download(data=output_data, filename=output_filename)
 
     def error(self):
         return self.err_msg and len(self.err_msg) > 0
-
 
 
 color = "rgb(107,99,246)"
@@ -111,10 +108,7 @@ def index():
                         rx.vstack(
                             rx.foreach(
                                 data[1].split("\n"),
-                                lambda txt: rx.text(
-                                    txt,
-                                    font_size="0.6em"
-                                ),
+                                lambda txt: rx.text(txt, font_size="0.6em"),
                             ),
                         ),
                         rx.vstack(
@@ -137,9 +131,7 @@ def index():
                             ),
                         ),
                         rx.code_block(
-                            data[2],
-                            language="xml-doc",
-                            font_size="0.6em"
+                            data[2], language="xml-doc", font_size="0.6em"
                         ),
                     ),
                 ),

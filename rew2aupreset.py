@@ -6,6 +6,7 @@ import sys
 
 from .app.converter import rew2iir, iir2aupreset, PRESET_DIR
 
+
 def usage():
     print("Usage:")
     print("{} -i eq.txt".format(sys.argv[0]))

@@ -14,6 +14,20 @@ for your headphone. You feed it to the tool and you get a preset.
 
 # How it works?
 
+The easiest way is to use <a href="https://eqconverter.spinorama.org/">eqconverter.spinorama.org/</a>
+
+You can also run it locally:
+
+## Installation
+
+```
+python3 -m venv venv
+source ./venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Run it
+
 ```
 ./rew2aupreset.py -i eq.txt
 ```
@@ -36,3 +50,28 @@ will copy the AUpreset where DAWs(1) expect to find them (2).
 
 - (1) at least Reaper and Logic will
 - (2) ~/Library/Audio/Presets/Apple/AUNBandEQ
+
+# Running the App
+
+In developement mode, just do:
+
+
+```
+reflex run
+```
+
+If you want to expose it on the internet, you can use a reverse proxy, you will need a domain name and the associated certificate.
+In the etc directory, you will find a config file for nginx (the reverse proxy) and a systemd service config file.
+
+the systemd file should go to `~/.config/systemd/user`, edit the path and then you can run it via:
+
+```
+systemctl --user enable eqconverter.service
+systemctl --user start eqconverter.service
+systemctl --user status eqconverter.service
+```
+
+the nginx file should go to ``/etc/nginx/site-available`. Look at the ngnix manual for more details.
+
+
+

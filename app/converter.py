@@ -5,7 +5,6 @@ import base64
 import pathlib
 from string import Template
 import struct
-import sys
 from typing import Literal
 
 from iir.filter_iir import Biquad, q2bw, bw2q
@@ -215,5 +214,3 @@ def iir2aupreset(iir: list, name: str) -> tuple[STATUS, str]:
     return 0, AUPRESET_TEMPLATE.substitute(
         data=data, name=name, number_of_bands=16
     )
-
-

@@ -3,3 +3,8 @@ defusedxml
 pyright
 ruff
 reflex
+pandas
+numpy
+plotly
+requests
+

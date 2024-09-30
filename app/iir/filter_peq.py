@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 
-from iir.filter_iir import Biquad, Vector, Peq
+from app.iir.filter_iir import Biquad, Vector, Peq
 
 
 def peq_build(freq: Vector, peq: Peq) -> Vector:

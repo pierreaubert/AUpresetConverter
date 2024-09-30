@@ -44,6 +44,10 @@
 *.sage.py
 *.so
 *.spec
+*.zip
+*~
+.#*
+.#*#~
 .Python
 .cache
 .coverage
@@ -72,6 +76,7 @@ ENV/
 MANIFEST
 __pycache__/
 __pypackages__/
+assets
 assets/external/
 build/
 celerybeat-schedule
@@ -102,14 +107,9 @@ profile_default/
 sdist/
 share/python-wheels/
 target/
+tmp
+uploaded_files
 var/
 venv.bak/
 venv/
 wheels/
-tmp
-uploaded_files
-*~
-.#*
-.#*#~
-assets
-*.zip

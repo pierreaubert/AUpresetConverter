@@ -4,5 +4,5 @@ config = rx.Config(
     app_name="app",
     frontend_port=8998,
     frontend_path="",
-    api_url="https://eqconverter.spinorama.org",
+    # api_url="https://eqconverter.spinorama.org",
 )

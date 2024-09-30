@@ -1,0 +1,2 @@
+Filter  1: ON  PK       Fc   38.60 Hz  Gain   2.00 dB  BW oct   0.19
+

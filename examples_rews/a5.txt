@@ -1,0 +1,26 @@
+Filter Settings file
+
+Room EQ V5.31.1
+Dated: Sep 15, 2024 1:00:35 PM
+
+Notes:a5
+
+Equaliser: AU N-Band EQ
+L+R Sep 15
+Filter  1: ON  PK       Fc   38.60 Hz  Gain   2.00 dB  BW oct   0.19
+Filter  2: ON  PK       Fc   63.30 Hz  Gain  -1.30 dB  BW oct   0.13
+Filter  3: ON  PK       Fc   163.5 Hz  Gain   1.60 dB  BW oct   0.19
+Filter  4: ON  PK       Fc   483.0 Hz  Gain  -2.30 dB  BW oct   0.18
+Filter  5: ON  PK       Fc   511.0 Hz  Gain   1.90 dB  BW oct   0.21
+Filter  6: ON  PK       Fc   638.0 Hz  Gain  -1.10 dB  BW oct   0.18
+Filter  7: ON  PK       Fc   734.0 Hz  Gain   1.00 dB  BW oct   0.19
+Filter  8: ON  PK       Fc    1042 Hz  Gain  -2.00 dB  BW oct   0.22
+Filter  9: ON  PK       Fc    1095 Hz  Gain   2.70 dB  BW oct   0.20
+Filter 10: ON  PK       Fc    1662 Hz  Gain  -0.70 dB  BW oct   0.24
+Filter 11: ON  PK       Fc    2102 Hz  Gain   0.80 dB  BW oct   0.19
+Filter 12: ON  PK       Fc    9994 Hz  Gain   2.80 dB  BW oct   0.19
+Filter 13: ON  PK       Fc   10133 Hz  Gain  -1.70 dB  BW oct   0.48
+Filter 14: ON  PK       Fc   19257 Hz  Gain   1.70 dB  BW oct   0.44
+Filter 15: ON  None
+Filter 16: ON  None
+

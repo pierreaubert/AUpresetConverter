@@ -4,7 +4,7 @@
 import pathlib
 import sys
 
-from .app.converter import rew2iir, iir2aupreset, PRESET_DIR
+from app.converter import rew2iir, iir2aupreset, PRESET_DIR
 
 
 def usage():
@@ -36,6 +36,7 @@ def main():
 
     status, iir = rew2iir(rew_filename)
     if status != 0 or len(iir) == 0:
+        print("Parsing failed! for {}".format(rew_filename))
         return 1
 
     status, aupreset = iir2aupreset(iir, preset_name)
@@ -48,11 +49,11 @@ def main():
         return 0
 
     output = "{}.aupreset".format(rew_base)
-    if len(sys.argv) == 4:
+    if len(sys.argv) == 4 and sys.argv[3] == "-install":
         PRESET_DIR.mkdir(mode=0o755, parents=True, exist_ok=True)
         output = "{}/{}.aupreset".format(PRESET_DIR, preset_name)
-
-    print(output)
+    elif len(sys.argv) == 5 and sys.argv[3] == "-o":
+        output = sys.argv[4]
 
     try:
         with open(output, "w", encoding="ascii") as fd:

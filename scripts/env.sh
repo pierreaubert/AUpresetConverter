@@ -23,14 +23,14 @@ fi
 ## ----------------------------------------------------------------------
 CODE=$PWD
 export PYTHONPATH=$CODE
-if ! test -d $CODE/.venv; then
-    python3 -m venv .venv
-    source $CODE/.venv/bin/activate
+if ! test -d $CODE/venv; then
+    python3 -m venv venv
+    source $CODE/venv/bin/activate
     # rehash
     pip3 install -U pip
     pip3 install -r requirements.txt
 fi
-source $CODE/.venv/bin/activate
+source $CODE/venv/bin/activate
 
 ## summary
 ## ----------------------------------------------------------------------

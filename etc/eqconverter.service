@@ -4,8 +4,8 @@ After=network-online.target
 
 [Service]
 StandardOutput=journal
-ExecStart=/bin/bash -c 'cd /home/pierre/run/eqconverter && source ./venv/bin/activate && reflex run --env prod --backend-only
---backend-port 9999'
+Environment="API_URL=https://eqconverter.spinorama.org"
+ExecStart=/bin/bash -c 'cd /home/pierre/run/eqconverter && source ./venv/bin/activate && reflex run --env prod --backend-only --backend-port 9999'
 Restart=on-failure
 RestartSec=10
 

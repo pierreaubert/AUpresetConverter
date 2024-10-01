@@ -70,7 +70,7 @@ def graph_eq_each(freq, peq):
 
 
 def graph_eq(freq, peq):
-    return go.Scatter(x=freq, y=peq_build(freq, peq))
+    return go.Scatter(x=freq, y=peq_build(freq, peq), name="EQ")
 
 
 def generate_xaxis(freq_min=20, freq_max=20000):
@@ -81,6 +81,7 @@ def generate_xaxis(freq_min=20, freq_max=20000):
         showline=True,
         dtick="D1",
     )
+
 
 def generate_yaxis():
     return dict(
@@ -94,7 +95,9 @@ def iir2graph(iir):
     peq = iir2peq(iir)
     t1 = graph_eq_each(freq, peq)
     t2 = graph_eq(freq, peq)
-    fig = make_subplots(rows=2, cols=1)
+    fig = make_subplots(
+        rows=2, cols=1
+    )  # , vertical_spacing=0.05, row_heights=[0.30, 0.30])
     for t in t1:
         fig.add_trace(t, row=1, col=1)
     fig.add_trace(t2, row=2, col=1)
@@ -102,6 +105,7 @@ def iir2graph(iir):
     fig.update_xaxes(generate_xaxis(), row=2, col=1)
     fig.update_yaxes(generate_yaxis(), row=1, col=1)
     fig.update_yaxes(generate_yaxis(), row=2, col=1)
+    # fig.update_layout(height=800, width=800)
     return fig
 
 
@@ -116,7 +120,8 @@ def preset_name(name: str) -> str:
 # Download
 # ----------------------------------------------------------------------
 
-class Downloader(rx.State):
+
+class SpeakerDownloader(rx.State):
     """
     Download data for speakers and headphones
     """
@@ -124,12 +129,7 @@ class Downloader(rx.State):
     # list of presets EQ
     eq_speakers: list[str] = []
     len_speakers: int = 0
-    eq_headphones: list[str] = []
-    len_headphones: int = 0
-
-    # selected speaker or headphone
     eq_speaker_selected: str = ""
-    eq_headphone_selected: str = ""
 
     def init_speakers(self):
         r = requests.get("https://spinorama.org/json/eqdata.json")
@@ -151,13 +151,43 @@ class Downloader(rx.State):
         return self.len_speakers
 
 
+class HeadphoneDownloader(rx.State):
+    """
+    Download data for speakers and headphones
+    """
+
+    # list of presets EQ
+    eq_headphones: list[str] = []
+    len_headphones: int = 0
+    eq_headphone_selected: str = ""
+
+    def init_headphones(self):
+        r = requests.get("https://spinorama.org/json/eqdata.json")
+        if r.status_code in (200, 304):
+            eqs = r.json()
+            self.eq_headphones = list(eqs.keys())
+            self.len_headphones = len(self.eq_headphones)
+        else:
+            self.len_headphones = r.status_code
+
+    @rx.var
+    def eq_headphones2(self) -> list[str]:
+        self.init_headphones()
+        return self.eq_headphones
+
+    @rx.var
+    def len_headphones2(self) -> int:
+        self.init_headphones()
+        return self.len_headphones
+
 
 # ----------------------------------------------------------------------
 # iir formatter
 # ----------------------------------------------------------------------
 
-class Converter(rx.State):
-    """The Converter state."""
+
+class Uploader(rx.State):
+    """The Uploader state."""
 
     # list of name, input eq, output eq, plot
     data: list[tuple[str, str, str, go.Figure]] = []
@@ -171,17 +201,17 @@ class Converter(rx.State):
 
         for file in files:
             buffer = await file.read()
-            if buffer is None or len(buffer)==0:
+            if buffer is None or len(buffer) == 0:
                 self.error = True
                 self.err_msg = "buffer failed"
                 continue
             input = buffer.decode("utf-8")
-            if input is None or len(input)==0:
+            if input is None or len(input) == 0:
                 self.error = True
                 self.err_msg = "input failed"
                 continue
             lines = input.split("\n")
-            if lines is None or len(lines)==0:
+            if lines is None or len(lines) == 0:
                 self.error = True
                 self.err_msg = "splitting failed"
                 continue
@@ -225,6 +255,7 @@ color = "rgb(107,99,246)"
 # page structure
 # ----------------------------------------------------------------------
 
+
 def block_title():
     return rx.text(
         "Convert your REW or APO EQ file into an AUpreset file",
@@ -246,9 +277,9 @@ def block_upload() -> rx.Component:
                 id="SelectFile",
             ),
             rx.cond(
-                Converter.error,
+                Uploader.error,
                 rx.callout(
-                    Converter.err_msg,
+                    Uploader.err_msg,
                     icon="triangle_alert",
                     color_scheme="red",
                     size="1",
@@ -263,38 +294,36 @@ def block_upload() -> rx.Component:
         max_files=6,
         max_size=10 * 1024,
         disabled=False,
-        on_drop=Converter.handle_upload(rx.upload_files(upload_id="upload2")),
+        on_drop=Uploader.handle_upload(rx.upload_files(upload_id="upload2")),
         border=f"1px dotted {color}",
         padding="2em",
     )
 
 
-@rx.page(on_load=Downloader.init_speakers)
+@rx.page(on_load=SpeakerDownloader.init_speakers)
 def block_pickup_preset_speakers() -> rx.Component:
-    return rx.vstack(
-        rx.text(f"{Downloader.len_speakers2} speakers", size="1"),
-        rx.select(
-            Downloader.eq_speakers2,
-            on_change=Downloader.set_eq_speaker_selected,
-            id="SelectSpeaker",
-        ),
+    return rx.select(
+        SpeakerDownloader.eq_speakers2,
+        placeholder=f"{SpeakerDownloader.len_speakers2} speakers",
+        on_change=SpeakerDownloader.set_eq_speaker_selected,
+        id="SelectSpeaker",
     )
 
 
-def block_pickup_preset_headsets() -> rx.Component:
-    return rx.vstack(
-        rx.text("Headphones", size="1"),
-        rx.select(
-            Downloader.eq_headphones,
-            id="SelectHeadphone",
-        ),
+@rx.page(on_load=HeadphoneDownloader.init_headphones)
+def block_pickup_preset_headphones() -> rx.Component:
+    return rx.select(
+        HeadphoneDownloader.eq_headphones2,
+        placeholder=f"{HeadphoneDownloader.len_headphones2} headphones",
+        on_change=HeadphoneDownloader.set_eq_headphone_selected,
+        id="SelectHeadphone",
     )
 
 
 def block_pickup_preset() -> rx.Component:
-    return rx.hstack(
+    return rx.vstack(
         block_pickup_preset_speakers(),
-        # block_pickup_preset_headsets(),
+        # block_pickup_preset_headphones(),
         padding="0.5em",
     )
 
@@ -310,16 +339,14 @@ def block_acquire() -> rx.Component:
                 block_upload(),
                 padding="1em",
             ),
-            rx.vstack(
-                rx.text(
-                    "Or select a predefined EQ",
-                    font_size="0.6em",
-                ),
-                #rx.form.root(
-                block_pickup_preset(),
-                #),
-                padding="1em",
-            ),
+            #            rx.vstack(
+            #                rx.text(
+            #                    "Or select a predefined EQ",
+            #                    font_size="0.6em",
+            #                ),
+            #                block_pickup_preset(),
+            #                padding="1em",
+            #            ),
         ),
         padding="2em",
     )
@@ -328,7 +355,7 @@ def block_acquire() -> rx.Component:
 def block_answer() -> rx.Component:
     return rx.grid(
         rx.foreach(
-            Converter.data,
+            Uploader.data,
             lambda item: rx.box(
                 rx.vstack(
                     rx.text(
@@ -345,7 +372,9 @@ def block_answer() -> rx.Component:
                     rx.plotly(data=item[3]),
                     rx.hstack(
                         rx.text(
-                            "Successfully generated {}.aupreset".format(item[0]),
+                            "Successfully generated {}.aupreset".format(
+                                item[0]
+                            ),
                             font_weight="bold",
                             size="2",
                         ),
@@ -354,7 +383,7 @@ def block_answer() -> rx.Component:
                             color=color,
                             bg="white",
                             border=f"1px solid {color}",
-                            on_click=Converter.save(item[0]),
+                            on_click=Uploader.save(item[0]),
                             size="1",
                         ),
                     ),

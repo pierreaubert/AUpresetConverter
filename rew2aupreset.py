@@ -21,12 +21,13 @@ def usage():
 
 def main():
     if (
-        (len(sys.argv) < 3 or len(sys.argv) > 5)
+        (len(sys.argv) < 3 or len(sys.argv) > 6)
         or sys.argv[1] != "-i"
         or (len(sys.argv) > 3 and sys.argv[3] not in ("-o", "-install"))
     ):
         usage()
         sys.exit(-1)
+
     rew_filename = sys.argv[2]
     rew_base = rew_filename
     dotpos = rew_filename.rfind(".")
@@ -42,9 +43,11 @@ def main():
     status, aupreset = iir2aupreset(iir, preset_name)
 
     if status != 0:
+        print("Generation failed! for {}".format(rew_filename))
         return status
 
     if len(sys.argv) == 3:
+        print("Generated file:")
         print(aupreset)
         return 0
 
@@ -54,6 +57,8 @@ def main():
         output = "{}/{}.aupreset".format(PRESET_DIR, preset_name)
     elif len(sys.argv) == 5 and sys.argv[3] == "-o":
         output = sys.argv[4]
+
+    print(output)
 
     try:
         with open(output, "w", encoding="ascii") as fd:

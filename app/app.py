@@ -194,12 +194,34 @@ class Uploader(rx.State):
     err_msg: str = ""
     error: bool = False
 
+    def text2data(self, input, name, lines) -> int:
+        status, iir = lines2iir(lines)
+        if status != 0:
+            self.error = True
+            self.err_msg = "failed to parse the input file {}".format(status)
+            return 1
+        preset = preset_name(preset_name(name))
+        status, output = iir2aupreset(iir, preset)
+        if status != 0:
+            self.error = True
+            self.err_msg = "failed to generate the preset {} status {}".format(
+                preset, status
+            )
+            return 1
+        fig = iir2graph(iir)
+        self.data.append((preset, input, output, fig))
+        return 0
+
     async def handle_upload(self, files: list[rx.UploadFile]):
         self.data = []
         self.err_msg = ""
         self.error = False
 
         for file in files:
+            if file.filename is None:
+                self.error = True
+                self.err_msg = "Filename is empty"
+                continue
             buffer = await file.read()
             if buffer is None or len(buffer) == 0:
                 self.error = True
@@ -215,29 +237,11 @@ class Uploader(rx.State):
                 self.error = True
                 self.err_msg = "splitting failed"
                 continue
-            status, iir = lines2iir(lines)
+            status = self.text2data(input, file.filename, lines)
             if status != 0:
                 self.error = True
-                self.err_msg = "failed to parse the input file {}".format(
-                    status
-                )
+                self.err_msg = f"parsing failed for {file.filename}"
                 continue
-            if file.filename is None:
-                self.error = True
-                self.err_msg = "Filename is empty"
-                continue
-            preset = preset_name(preset_name(file.filename))
-            status, output = iir2aupreset(iir, preset)
-            if status != 0:
-                self.error = True
-                self.err_msg = (
-                    "failed to generate the preset {} status {}".format(
-                        preset, status
-                    )
-                )
-                continue
-            fig = iir2graph(iir)
-            self.data.append((preset, input, output, fig))
 
     async def save(self, filename):
         for file, _, output_data, _ in self.data:

@@ -18,6 +18,32 @@ PRESET_DIR = pathlib.PosixPath(
     "~/Library/Audio/Presets/Apple/AUNBandEQ"
 ).expanduser()
 
+# https://developer.apple.com/documentation/audiotoolbox/1389745-aunbandeq_parameters
+kAUNBandEQParam_BypassBand = 1000
+kAUNBandEQParam_FilterType = 2000
+kAUNBandEQParam_Frequency = 3000
+kAUNBandEQParam_Gain = 4000
+kAUNBandEQParam_Bandwidth = 5000
+kAUNBandEQParam_GlobalGain = 0
+#
+kAUNBandEQProperty_NumberOfBands = 2200
+kAUNBandEQProperty_MaxNumberOfBands = 2201
+kAUNBandEQProperty_BiquadCoefficients = 2203
+#
+kAUNBandEQFilterType_Parametric = 0
+kAUNBandEQFilterType_2ndOrderButterworthLowPass = 1
+kAUNBandEQFilterType_2ndOrderButterworthHighPass = 2
+kAUNBandEQFilterType_ResonantLowPass = 3
+kAUNBandEQFilterType_ResonantHighPass = 4
+kAUNBandEQFilterType_BandPass = 5
+kAUNBandEQFilterType_BandStop = 6
+kAUNBandEQFilterType_LowShelf = 7
+kAUNBandEQFilterType_HighShelf = 8
+kAUNBandEQFilterType_ResonantLowShelf = 9
+kAUNBandEQFilterType_ResonantHighShelf = 10
+kNumAUNBandEQFilterTypes = 11
+
+# plist template, could also use a library
 AUPRESET_TEMPLATE = Template(
     '\
 <?xml version="1.0" encoding="UTF-8"?>\n\
@@ -85,6 +111,7 @@ def parse_aunbandeq(lines: list[str]) -> tuple[STATUS, IIR]:
         len_tokens = len(tokens)
         # print(len_tokens, line)
         if len_tokens != 8 or tokens[0] == "Number" or tokens[3] == "None":
+            # print('DEBUG dropping line {}'.format(line))
             continue
         iir.append(
             {
@@ -103,7 +130,12 @@ def parse_apo(lines: list[str]) -> tuple[STATUS, IIR]:
         tokens = line.split()
         len_tokens = len(tokens)
         # print(len_tokens, line)
-        if len_tokens > 0 and tokens[0] == "Filter" and tokens[2] == "ON":
+        if (
+            len_tokens > 0
+            and tokens[0] == "Filter"
+            and tokens[2] == "ON"
+            and tokens[3] != "None"
+        ):
             if len_tokens == 12:
                 iir.append(
                     {
@@ -165,17 +197,26 @@ def rew2iir(filename: str) -> tuple[STATUS, IIR]:
     return 1, []
 
 
-def iir2data(iir: IIR) -> tuple[STATUS, str]:
+def iir2data(iir: IIR) -> tuple[STATUS, int, str]:
     """Build the data field from an iir"""
 
-    def type2value(t: str) -> float:
+    def type2value(t: str) -> int:
         """Transform a IIR type into the corresponding value for AUNBandEQ"""
-        return {
-            "PK": 0.0,
-            "LS": 8.0,
-            "HS": 9.0,
-            "BP": 6.0,
-        }.get(t, -1.0)
+        val = {
+            "PK": kAUNBandEQFilterType_Parametric,
+            "HS": kAUNBandEQFilterType_HighShelf,
+            "LS": kAUNBandEQFilterType_LowShelf,
+            "HP": kAUNBandEQFilterType_ResonantHighPass,
+            "LP": kAUNBandEQFilterType_ResonantLowPass,
+            "BP": kAUNBandEQFilterType_BandPass,
+        }.get(t, -1)
+        if val == -1:
+            print(
+                "error in eq: {} is not supported yet, contact developer please!".format(
+                    t
+                )
+            )
+        return val
 
     len_iir = len(iir)
     # print(len_iir)
@@ -186,47 +227,76 @@ def iir2data(iir: IIR) -> tuple[STATUS, str]:
 
     params = {}
     for i, current_iir in enumerate(iir):
-        params["{}".format(1000 + i)] = 0.0  # True
-        params["{}".format(2000 + i)] = type2value(str(current_iir["type"]))
-        params["{}".format(3000 + i)] = float(current_iir["freq"])
-        params["{}".format(4000 + i)] = float(current_iir["gain"])
-        params["{}".format(5000 + i)] = float(current_iir["width"])
+        params["{:d}".format(kAUNBandEQParam_BypassBand + i)] = 0.0  # True
+        params["{:d}".format(kAUNBandEQParam_FilterType + i)] = type2value(
+            str(current_iir["type"])
+        )
+        params["{:d}".format(kAUNBandEQParam_Frequency + i)] = float(
+            current_iir["freq"]
+        )
+        params["{:d}".format(kAUNBandEQParam_Gain + i)] = float(
+            current_iir["gain"]
+        )
+        params["{:d}".format(kAUNBandEQParam_Bandwidth + i)] = float(
+            current_iir["width"]
+        )
 
     # remainings EQ are required and are set to 0
     for i in range(len_iir, 16):
-        params["{}".format(1000 + i)] = 1.0  # False
-        params["{}".format(2000 + i)] = 0.0
-        params["{}".format(3000 + i)] = 0.0
-        params["{}".format(4000 + i)] = 0.0
-        params["{}".format(5000 + i)] = 0.0
+        params["{:d}".format(kAUNBandEQParam_BypassBand + i)] = 1.0  # False
+        params["{:d}".format(kAUNBandEQParam_FilterType + i)] = 0
+        params["{:d}".format(kAUNBandEQParam_Frequency + i)] = 0.0
+        params["{:d}".format(kAUNBandEQParam_Gain + i)] = 0.0
+        params["{:d}".format(kAUNBandEQParam_Bandwidth + i)] = 0.0
 
     # some black magic, data is padded, the only important values are
     # 3. number of parameters + 1
     # 5. db_gain
-    buffer = struct.pack(">llllf", 0, 0, 81, 0, preamp_gain)
+
+    # need to check if length is variable or not
+    # ndata = 5
+    # for current_iir in iir:
+    #    ndata += 2
+    #    if current_iir["type"] == "PK":
+    #        ndata += 3
+    #    elif current_iir["type"] in ("LS", "HS", "BP", "BS", "RLP", "RHP"):
+    #        ndata += 2
+    #    elif current_iir["type"] in ("BLP", "BHP"):
+    #        ndata += 1
+
+    ndata = 81
+    buffer = struct.pack(">llllf", 0, 0, ndata, 0, preamp_gain)
 
     # add pairs of (param_id, value) in big endian
-    for param_id, value in params.items():
-        buffer += struct.pack(">lf", int(param_id), value)
+    # it looks like Apple now sort them
+    for param_id, value in sorted(params.items()):
+        if param_id[0] in ("2"):
+            # value is unsigned int https://developer.apple.com/documentation/audiotoolbox/audiounitparameterid
+            # buffer += struct.pack(">ll", int(param_id), value)
+            buffer += struct.pack(">lf", int(param_id), float(value))
+        else:
+            # value is a float
+            buffer += struct.pack(">lf", int(param_id), value)
 
     # convert the byte buffer to base64
     text = base64.standard_b64encode(buffer).decode("ascii")
 
-    # add \t and slice in chunks of 67 chars
-    len_text = len(text) // 67
+    # add \t and slice in chunks of 68 chars
+    nchunks = 68
+    len_text = len(text) // nchunks
     slices = [
-        "\t{}\n".format(text[i * 67 : (i + 1) * 67]) for i in range(len_text)
+        "\t{}\n".format(text[i * nchunks : (i + 1) * nchunks])
+        for i in range(len_text)
     ]
-    slices += ["\t{}".format(text[len_text * 67 :])]
+    slices += ["\t{}".format(text[len_text * nchunks :])]
 
-    return 0, "".join(slices)
+    return 0, len_iir, "".join(slices)
 
 
 def iir2aupreset(iir: list, name: str) -> tuple[STATUS, str]:
-    status, data = iir2data(iir)
+    status, len, data = iir2data(iir)
     if status != 0:
         return status, ""
-    # TODO: investigate why only 16 works
     return 0, AUPRESET_TEMPLATE.substitute(
-        data=data, name=name, number_of_bands=16
+        data=data, name=name, number_of_bands=len
     )

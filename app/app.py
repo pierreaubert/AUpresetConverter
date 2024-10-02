@@ -90,8 +90,8 @@ def generate_yaxis():
     )
 
 
-def iir2graph(iir):
-    freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 200)
+def iir2graphs(iir):
+    freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 60)
     peq = iir2peq(iir)
     t1 = graph_eq_each(freq, peq)
     t2 = graph_eq(freq, peq)
@@ -106,6 +106,17 @@ def iir2graph(iir):
     fig.update_yaxes(generate_yaxis(), row=1, col=1)
     fig.update_yaxes(generate_yaxis(), row=2, col=1)
     # fig.update_layout(height=800, width=800)
+    return fig
+
+
+def iir2graph(iir):
+    freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 60)
+    peq = iir2peq(iir)
+    t2 = graph_eq(freq, peq)
+    fig = go.Figure()
+    fig.add_trace(t2)
+    fig.update_xaxes(generate_xaxis())
+    fig.update_yaxes(generate_yaxis())
     return fig
 
 

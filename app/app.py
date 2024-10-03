@@ -211,7 +211,7 @@ class Uploader(rx.State):
             self.error = True
             self.err_msg = "failed to parse the input file {}".format(status)
             return 1
-        preset = preset_name(preset_name(name))
+        preset = preset_name(name)
         status, output = iir2aupreset(iir, preset)
         if status != 0:
             self.error = True
@@ -219,7 +219,7 @@ class Uploader(rx.State):
                 preset, status
             )
             return 1
-        fig = iir2graph(iir)
+        fig = go.Figure() # iir2graph(iir)
         self.data.append((preset, input, output, fig))
         return 0
 
@@ -248,11 +248,25 @@ class Uploader(rx.State):
                 self.error = True
                 self.err_msg = "splitting failed"
                 continue
-            status = self.text2data(input, file.filename, lines)
+            status, iir = lines2iir(lines)
             if status != 0:
                 self.error = True
-                self.err_msg = f"parsing failed for {file.filename}"
-                continue
+                self.err_msg = "failed to parse the input file {}".format(
+                    status
+                )
+                return 1
+            preset = preset_name(file.filename)
+            status, output = iir2aupreset(iir, preset)
+            if status != 0:
+                self.error = True
+                self.err_msg = (
+                    "failed to generate the preset {} status {}".format(
+                        preset, status
+                    )
+                )
+                return 1
+            fig = iir2graph(iir)
+            self.data.append((preset, input, output, fig))
 
     async def save(self, filename):
         for file, _, output_data, _ in self.data:
@@ -379,12 +393,12 @@ def block_answer() -> rx.Component:
                         font_weight="bold",
                     ),
                     rx.code_block(item[1], language="yaml", font_size="0.6em"),
-                    rx.text(
-                        "Visually, it looks like:",
-                        size="2",
-                        font_weight="bold",
-                    ),
-                    rx.plotly(data=item[3]),
+#                    rx.text(
+#                        "Visually, it looks like:",
+#                        size="2",
+#                        font_weight="bold",
+#                    ),
+#                    rx.plotly(data=item[3]),
                     rx.hstack(
                         rx.text(
                             "Successfully generated {}.aupreset".format(
@@ -407,9 +421,9 @@ def block_answer() -> rx.Component:
                         font_weight="bold",
                         font_size="0.6em",
                     ),
-                    rx.code_block(
-                        item[2], language="xml-doc", font_size="0.6em"
-                    ),
+ #                   rx.code_block(
+ #                       item[2], language="xml-doc", font_size="0.6em"
+ #                   ),
                 ),
             ),
         ),

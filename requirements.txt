@@ -2,9 +2,16 @@ numpy
 defusedxml
 pyright
 ruff
-reflex
 pandas
 numpy
 plotly
 requests
+python-multipart
+fastapi[standard]
+gunicorn
+pyyaml
+uvicorn
+aiofiles
+
+
 

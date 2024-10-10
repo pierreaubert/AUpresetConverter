@@ -9,8 +9,8 @@ from typing import Literal
 
 import reflex as rx
 
-from app.iir.filter_iir import Biquad, q2bw, bw2q
-from app.iir.filter_peq import peq_preamp_gain, Peq
+from iir.filter_iir import Biquad, q2bw, bw2q
+from iir.filter_peq import peq_preamp_gain, Peq
 
 SRATE = 48000
 

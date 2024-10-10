@@ -113,3 +113,6 @@ var/
 venv.bak/
 venv/
 wheels/
+node_modules
+app/
+.DS_Store

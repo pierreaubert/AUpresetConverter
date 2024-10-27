@@ -2,6 +2,7 @@
 import hashlib
 import json
 import logging
+import math
 import os
 import sys
 
@@ -12,9 +13,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 import uvicorn
 from pydantic import BaseModel, Field
+import numpy as np
 
 from iir.filter_iir import Peq
-from iir.filter_peq import peq_format_apo, peq_print
+from iir.filter_peq import peq_format_apo, peq_print, peq_build
 from converter import IIR, lines2iir, iir2aupreset, iir2peq
 
 
@@ -207,33 +209,43 @@ async def upload_eq(file: UploadFile = File(...)):
         buffer = await file.read()
         if not buffer or len(buffer) == 0:
             return {
-                "message": "There was an error parsing the file: buffer looks empty"
+                "message": "There was an error parsing the file: buffer looks empty",
+                "hash": None,
             }
         input = buffer.decode("utf-8")
         if not input or len(input) == 0:
             return {
-                "message": "There was an error parsing the file: buffer decoding"
+                "message": "There was an error parsing the file: buffer decoding",
+                "hash": None,
             }
         lines = input.split("\n")
         if not lines or len(lines) == 0:
             return {
-                "message": "There was an error parsing the file: buffer splitting"
+                "message": "There was an error parsing the file: buffer splitting",
+                "hash": None,
             }
         status, iir = lines2iir(lines)
         if status != 0:
-            return {"message": "There was an error parsing the file as an EQ"}
+            return {
+                "message": "There was an error parsing the file as an EQ",
+                "hash": None,
+            }
         hash = hashlib.blake2b(buffer).hexdigest()
         if not hash:
             return {
-                "message": "There was an error parsing the file: hashing failed"
+                "message": "There was an error parsing the file: hashing failed",
+                "hash": None,
             }
         name = file.filename if file.filename else "eq"
         eq = EQ(hash=hash, name=name, peq=str(iir))
         status = create_eq(eq)
         if status != 0:
-            return {"message": "Failed to save peq"}
+            return {"message": "Failed to save peq", "hash": None}
     except Exception as e:
-        return {"message": "There was an error uploading the file {}".format(e)}
+        return {
+            "message": "There was an error uploading the file {}".format(e),
+            "hash": None,
+        }
 
     await file.close()
 
@@ -247,7 +259,7 @@ async def get_eqs():
     return JSONResponse(content=encoded)
 
 
-@backend.get(f"/{API_VERSION}/eq/aupreset", tags=["EQ"])
+@backend.get(f"/{API_VERSION}/eq/target/aupreset", tags=["EQ"])
 async def get_eq_aupreset(hash: str):
     name, iir = db_get_eq(hash)
     content = iir2aupreset(iir, name)
@@ -255,11 +267,35 @@ async def get_eq_aupreset(hash: str):
     return JSONResponse(content=encoded)
 
 
-@backend.get(f"/{API_VERSION}/eq/apo", tags=["EQ"])
+@backend.get(f"/{API_VERSION}/eq/target/apo", tags=["EQ"])
 async def get_eq_apo(hash: str):
     name, iir = db_get_eq(hash)
     peq = iir2peq(iir)
     content = peq_format_apo(comment=name, peq=peq)
+    encoded = jsonable_encoder(content)
+    return JSONResponse(content=encoded)
+
+
+@backend.get(f"/{API_VERSION}/eq/graph_spl", tags=["EQ"])
+async def get_eq_graph_spl(hash: str):
+    name, iir = db_get_eq(hash)
+    peq = iir2peq(iir)
+    freq = np.logspace(1+math.log10(2), 4+math.log10(2), 200)
+    spl = peq_build(freq, peq)
+    content = {'freq': freq.tolist(), 'spl': spl.tolist()}
+    encoded = jsonable_encoder(content)
+    return JSONResponse(content=encoded)
+
+
+@backend.get(f"/{API_VERSION}/eq/graph_spl_details", tags=["EQ"])
+async def get_eq_graph_spl_details(hash: str):
+    name, iir = db_get_eq(hash)
+    peq = iir2peq(iir)
+    freq = np.logspace(1+math.log10(2), 4+math.log10(2), 200)
+    spl = {}
+    for i, iir in enumerate(peq):
+        spl[i] = peq_build(freq, [iir]).tolist()
+    content = {'freq': freq.tolist(), 'spl': spl}
     encoded = jsonable_encoder(content)
     return JSONResponse(content=encoded)
 

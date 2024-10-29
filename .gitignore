@@ -55,6 +55,7 @@
 .dmypy.json
 .eggs/
 .env
+.idea
 .hypothesis/
 .installed.cfg
 .ipynb_checkpoints

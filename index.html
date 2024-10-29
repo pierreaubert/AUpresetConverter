@@ -12,9 +12,12 @@
 <body>
 
     <div id="stepSelect" class="section">
+      <div class="content">
+	<h1>Pick an EQ file</h1>
+      </div>
       <form enctype="multipart/form-data" id="uploadEQ" method="post">
 	<div class="field">
-	  <label class="label">1. Pick an EQ file</label>
+	  <label class="label">From a local file</label>
 	  <div class="control">
 	    <div class="file is-boxed has-name">
               <label class="file-label">
@@ -31,6 +34,19 @@
 	  </div>
 	</div>
       </form>
+      <form id="getEQFromSpinorama" method="get">
+	<div class="field">
+	  <label class="label">From speaker database</label>
+	  <div class="control">
+	    <select id="selectSpeakers">
+	    </select>
+	  </div>
+	  <div class="control">
+	    <select id="selectSpeakerEQ" hidden>
+	    </select>
+	  </div>
+	</div>
+      </form>
       <div id="plots" hidden>
 	<div id="plotIIR">
 	</div>
@@ -40,15 +56,20 @@
     </div>
 
     <div id="stepConvert" class="section" hidden>
+      <div class="content">
+	<h1>Convert</h1>
+      </div>
       <div class="box" id="convertEQ">
-	<input id="hash" value="" hidden>
+	<label for="hash"></label>
+	<input id="hash" value="" hidden />
 	<div class="field">
 	  <label class="label">2. Select format and convert:</label>
 	</div>
 	<div class="field is-grouped">
 	  <div class="control">
 	    <div class="select">
-	      <select id="selectFormat">
+	      <label for="selectFormat"></label>
+	      <select id="selectFormat" name="selectFormat">
 		<option value="AUPreset">AUPreset</option>
 		<option value="APO">APO</option>
 		<option value="Roon">Roon</option>
@@ -68,8 +89,8 @@
 	      <label class="label">EQ APO format</label>
 	    </div>
 	    <blockquote>
-	      <ul>
-	      </ul>
+	      <p class="is-family-monospace">
+	      </p>
 	    </blockquote>
 	    <div class="control">
 	      <button class="button is-link" id="downloadAPO">Download</button>
@@ -82,8 +103,8 @@
 	      <label class="label">EQ AUPreset format</label>
 	    </div>
 	    <blockquote>
-	      <ul>
-	      </ul>
+	      <p class="is-family-monospace">
+	      </p>
 	    </blockquote>
 	    <div class="control">
 	      <button class="button is-link" id="downloadAUPreset">Download</button>

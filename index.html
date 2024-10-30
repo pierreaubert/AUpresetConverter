@@ -5,11 +5,14 @@
     <meta content="text/html;charset=utf-8" http-equiv="content-type">
     <meta content="width=device-width, initial-scale=1" name="viewport">
 
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <link href="https://spinorama.org/css/bulma-1.0.1.min.css" rel="stylesheet">
 
 </head>
 <body>
+
+  <div class="includes" data-name="assets/symbols" data-ext="xml">Loading...</div>
+  <div class="includes" data-name="assets/menu" data-ext="html">Loading...</div>
 
     <div id="stepSelect" class="section">
       <div class="content">
@@ -21,7 +24,7 @@
 	  <div class="control">
 	    <div class="file is-boxed has-name">
               <label class="file-label">
-		<input accept="plain/*" class="file-input" multiple name="file" type="file"/>
+		<input accept="plain/*" class="file-input" multiple name="file" type="file">
 		<span class="file-cta">
 		  <span class="file-icon">
 		    <i class="fas fa-upload"></i>
@@ -61,7 +64,7 @@
       </div>
       <div class="box" id="convertEQ">
 	<label for="hash"></label>
-	<input id="hash" value="" hidden />
+	<input id="hash" value="" hidden>
 	<div class="field">
 	  <label class="label">2. Select format and convert:</label>
 	</div>
@@ -72,8 +75,10 @@
 	      <select id="selectFormat" name="selectFormat">
 		<option value="AUPreset">AUPreset</option>
 		<option value="APO">APO</option>
+<!--
 		<option value="Roon">Roon</option>
 		<option value="RME">RME</option>
+-->
 	      </select>
 	    </div>
 	  </div>
@@ -97,7 +102,7 @@
 	    </div>
 	  </div>
 	</div>
-	<div class="box" id="displayEQAUpreset">
+	<div class="box" id="displayEQAUPreset">
 	  <div class="content">
 	    <div class="field">
 	      <label class="label">EQ AUPreset format</label>

@@ -1,17 +1,12 @@
 numpy
 defusedxml
-pyright
-ruff
 pandas
 numpy
 plotly
-requests
-python-multipart
 fastapi[standard]
-gunicorn
-pyyaml
-uvicorn
-aiofiles
+uvicorn>=0.32.0
+sqlite4
+
 
 
 

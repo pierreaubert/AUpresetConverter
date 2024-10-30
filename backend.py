@@ -24,22 +24,22 @@ from converter import IIR, lines2iir, iir2aupreset, iir2peq
 # constants
 # ----------------------------------------------------------------------
 
-API_VERSION = "v0"
-CURRENT_VERSION = 0
+API_VERSION = "v1"
+CURRENT_VERSION = 2
 SOFTWARE_VERSION = f"{API_VERSION}.{CURRENT_VERSION}"
 
 # ----------------------------------------------------------------------
 # env variables
 # ----------------------------------------------------------------------
 
-ENV = os.getenv("EQCOMPARE_ENV", "dev")
+ENV = os.getenv("EQCONVERTER_ENV", "dev")
 
 FILES = "/var/www/html/spinorama-eqconverter"
 SPIN = "/var/www/html/spinorama-prod"
-METADATA = f"{SPIN}/assets/metadata.json"
-EQDATA = f"{SPIN}/assets/eqdata.json"
+METADATA = f"{SPIN}/json/metadata.json"
+EQDATA = f"{SPIN}/json/eqdata.json"
 FASTAPI_DEBUG = False
-SERVER = "https://eqconvert.spinorama.org/{}".format(API_VERSION)
+SERVER = "https://eqconverter.spinorama.org/{}".format(API_VERSION)
 
 if ENV == "dev":
     SERVER = "http://0.0.0.0:8000/{}".format(API_VERSION)
@@ -49,7 +49,7 @@ if ENV == "dev":
     FASTAPI_DEBUG = True
 
 
-KNOWN_FORMATS = set(["txt", "text"])
+KNOWN_FORMATS = set(["txt", "text", "aupreset"])
 
 # ----------------------------------------------------------------------
 # data model
@@ -155,16 +155,17 @@ backend = FastAPI(
 )
 
 origins = [
-    "http://127.0.0.1:7999",
 ]
 
-backend.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+if ENV == 'dev':
+    origins.append('https://127.0.0.1')
+    backend.add_middleware(
+        CORSMiddleware,
+        allow_origins=origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 
 @backend.get(f"/{API_VERSION}/brands", tags=["Speaker Anechoic EQ"])
@@ -331,7 +332,7 @@ async def get_eq_apo(hash: str):
 
 @backend.get(f"/{API_VERSION}/eq/graph_spl", tags=["EQ"])
 async def get_eq_graph_spl(hash: str):
-    name, iir = db_get_eq(hash)
+    _, iir = db_get_eq(hash)
     peq = iir2peq(iir)
     freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 200)
     spl = peq_build(freq, peq)
@@ -361,7 +362,7 @@ if __name__ == "__main__":
             host="0.0.0.0",
             port=8000,
         )
-    elif ENV == "prod":
+    else:
         uvicorn.run(
             "backend:backend",
             host="0.0.0.0",

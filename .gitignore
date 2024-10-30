@@ -117,3 +117,5 @@ wheels/
 node_modules
 app/
 .DS_Store
+dist
+*.tgz

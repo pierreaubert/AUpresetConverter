@@ -1,20 +1,22 @@
 #!/bin/bash
-# script to be run as root on the deployment frontend
+# script to run the deployment frontend
+# note the various sudo commands
 
 USER=pierre
 WWW=/var/www/html/spinorama-eqconverter
 BACK=/home/$USER/run/eqconverter
+DEPLOY=/home/$USER/deploy
 
 cd /home/$USER/deploy
 
 # frontend code
-mkdir -p "$WWW"
-chown -r $USER:$USER "$WWW"
-cd "$WWW" && unzip -o -q /home/$USER/deploy/frontend.zip
+sudo mkdir -p "$WWW"
+sudo tar zxvf /home/$USER/deploy/frontend.tgz -C "$WWW"
+sudo chown -R $USER:$USER "$WWW"
 
 # nginx conf
-cp etc/nginx.conf /etc/nginx/sites-available/spinorama-eqconverter
-status=$(nginx -t)
+sudo cp etc/nginx.conf /etc/nginx/sites-available/spinorama-eqconverter
+status=$(sudo nginx -t)
 if test -z "$status"; then
     echo "OK after checking nginx config!"
 else
@@ -23,25 +25,26 @@ else
 fi
 
 # backend code
+mkdir -p "$BACK"
+tar zxvf /home/$USER/deploy/backend.tgz -C "$BACK"
 
-cd "$BACK" && unzip -o -q /home/$USER/deploy/backend.zip
-
-if [ -d "$BACK/venv" ]; then
+if test -d "$BACK/venv"; then
     . "$BACK/venv/bin/activate"
     pip3 install -U -r requirements.txt
 else
-    apt install python3-pip
+    sudo apt install python3-full python3-pip
     cd "$BACK"
     python3 -m venv venv
-    source venv/bin/activate
+    . venv/bin/activate
     pip3 install -r requirements.txt
 fi
+chown -R $USER:$USER "$BACK"
 
 # systemd
 mkdir -p /home/$USER/.config/systemd/user
-cp etc/eqconverter.service /home/$USER/.config/systemd/user
+cp "${DEPLOY}/etc/eqconverter.service" "/home/${USER}/.config/systemd/user"
 
 systemctl --user daemon-reload
 systemctl --user restart eqconverter.service
 
-systemctl restart nginx
+sudo systemctl restart nginx

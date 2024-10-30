@@ -4,7 +4,7 @@
 import pathlib
 import sys
 
-from app.converter import rew2iir, iir2aupreset, PRESET_DIR
+from ..converter import rew2iir, iir2aupreset, PRESET_DIR
 
 
 def usage():

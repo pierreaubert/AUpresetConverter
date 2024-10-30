@@ -1,5 +1,7 @@
 // import Plotly from 'plotly-dist-min';
 
+const backend = 'https://eqconverter.spinorama.org/v1';
+
 const hide = (elem) => {
     if (elem) {
         elem.hidden = true;
@@ -15,6 +17,7 @@ const show = (elem) => {
 const https_headers = { headers: { 'Accept-Encoding': 'bz2, gzip, deflate', 'Content-Type': 'application/json' } };
 
 // structure of the index.html
+// topbar
 // select
 //    +----- a file
 //    +----- for a speaker
@@ -29,6 +32,9 @@ const https_headers = { headers: { 'Accept-Encoding': 'bz2, gzip, deflate', 'Con
 //                  +--- APO
 //                  +--- AUPreset
 //    +----- download
+
+const topBar = document.querySelector('#topBar');
+const navBar = document.querySelector('#navBar');
 
 const stepSelect = document.querySelector('#stepSelect');
 
@@ -49,11 +55,26 @@ const formConvertHash = formConvert.querySelector('#hash');
 const formConvertSelect = formConvert.querySelector('#selectFormat');
 const formConvertSubmit = formConvert.querySelector('#submitButton');
 
+const resultsEQ = stepConvert.querySelector('#displayEQ');
+const resultsEQAPO = resultsEQ.querySelector('#displayEQAPO');
+const resultsEQAUPreset = resultsEQ.querySelector('#displayEQAUPreset');
+
 const formDownloadAPO = stepConvert.querySelector('#downloadAPO');
 const formDownloadAUPreset = stepConvert.querySelector('#downloadAUPreset');
 
+function importIncludes() {
+    const components = document.querySelectorAll('.includes')
+    const loadComponent = async c => {
+        const { name, ext } = c.dataset
+        const response = await fetch(`${name}.${ext}`)
+        const html = await response.text()
+        c.innerHTML = html
+    }
+    [...components].forEach(loadComponent);
+}
+
 async function uploadFiles(form) {
-    const url = 'http://0.0.0.0:8000/v0/eq/upload';
+    const url = backend + '/eq/upload';
     const formData = new FormData();
     for (const file of form.files) {
         formData.append('file', file);
@@ -94,7 +115,7 @@ function assignDiv(selector, dataList, defText, selected) {
 }
 
 async function setSpeakerEQ(speakerName) {
-    const url = 'http://0.0.0.0:8000/v0/speaker/' + speakerName + '/eqdata';
+    const url = backend + '/speaker/' + speakerName + '/eqdata';
     const response = await fetch(url, https_headers);
 
     const data = await response.json();
@@ -133,7 +154,7 @@ async function setSpeakerEQ(speakerName) {
 }
 
 async function loadFromSpinorama() {
-    const url = 'http://0.0.0.0:8000/v0/speakers';
+    const url = backend + '/speakers';
     const response = await fetch(url, https_headers);
 
     const data = await response.json();
@@ -155,7 +176,7 @@ async function loadFromSpinorama() {
 
 async function displayEqAPO(hash) {
     const eq = document.querySelector('#displayEQAPO p');
-    const url = 'http://0.0.0.0:8000/v0/eq/target/apo';
+    const url = backend + '/eq/target/apo';
     if (hash === null || hash.length !== 128) {
         return;
     }
@@ -173,7 +194,7 @@ async function displayEqAPO(hash) {
 }
 
 async function downloadAPO(fileName, hash) {
-    const url = 'http://0.0.0.0:8000/v0/eq/target/apo';
+    const url = backend + '/eq/target/apo';
     if (hash === null || hash.length !== 128) {
         return;
     }
@@ -189,7 +210,7 @@ async function downloadAPO(fileName, hash) {
 }
 
 async function downloadAUPreset(fileName, hash) {
-    const url = 'http://0.0.0.0:8000/v0/eq/target/aupreset';
+    const url = backend + '/eq/target/aupreset';
     if (hash === null || hash.length !== 128) {
         return;
     }
@@ -226,14 +247,14 @@ function xml2html(s) {
 }
 
 async function displayEqAUPreset(hash) {
-    const url = 'http://0.0.0.0:8000/v0/eq/target/aupreset';
+    const url = backend + '/eq/target/aupreset';
     if (hash === null || hash.length !== 128) {
         return;
     }
     const response = await fetch(url + '?hash=' + hash, https_headers);
 
     const data = await response.json();
-    const eq = document.querySelector('#displayEQAUpreset p');
+    const eq = document.querySelector('#displayEQAUPreset p');
     if (eq && data.length >= 1) {
         const lines = data[1].split('\n');
         let content = '';
@@ -347,7 +368,7 @@ function iir2graph(freq, spls) {
 }
 
 async function plotlyPEQ(div, hash) {
-    const url = 'http://0.0.0.0:8000/v0/eq/graph_spl';
+    const url = backend + '/eq/graph_spl';
     if (hash === null || hash.length !== 128) {
         return;
     }
@@ -359,7 +380,7 @@ async function plotlyPEQ(div, hash) {
 }
 
 async function plotlyIIR(div, hash) {
-    const url = 'http://0.0.0.0:8000/v0/eq/graph_spl_details';
+    const url = backend + '/eq/graph_spl_details';
     if (hash === null || hash.length !== 128) {
         return;
     }
@@ -376,6 +397,8 @@ window.onload = () => {
             createHTML: (string) => string,
         });
     }
+
+    importIncludes();
 
     // load initial data
     const statusLoadSpinorama = loadFromSpinorama();
@@ -405,14 +428,21 @@ window.onload = () => {
     };
 
     // Convert
-    const results = stepConvert.querySelector('#displayEQ');
-
     formConvertSubmit.onclick = async () => {
+	hide(resultsEQ);
         const hash = formConvertHash.value;
-        if (hash !== '') {
-            displayEqAPO(hash);
-            displayEqAUPreset(hash);
-            show(results);
+	const method = formConvertSelect.value;
+        if (hash !== '' && method !== '') {
+            show(resultsEQ);
+	    hide(resultsEQAPO);
+	    hide(resultsEQAUPreset);
+	    if (method === 'APO') {
+		displayEqAPO(hash);
+		show(resultsEQAPO);
+	    } else if (method === 'AUPreset') {
+		displayEqAUPreset(hash);
+		show(resultsEQAUPreset);
+	    }
         }
     };
 

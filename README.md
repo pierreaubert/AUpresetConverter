@@ -24,12 +24,14 @@ You can also run it locally:
 python3 -m venv venv
 source ./venv/bin/activate
 pip3 install -r requirements.txt
+pip3 install -r requirements-dev.txt
+npm i .
 ```
 
 ## Run it
 
 ```
-./rew2aupreset.py -i eq.txt
+./scripts/rew2aupreset.py -i eq.txt
 ```
 
 will copy the AUpreset to the standard output.
@@ -37,13 +39,13 @@ will copy the AUpreset to the standard output.
 you may want to copy it where most DAW can find it:
 
 ```
-./rew2aupreset.py -i eq.txt -install
+./scripts/rew2aupreset.py -i eq.txt -install
 ```
 
 you can redirect to a file with the -o flag.
 
 ```
-./rew2aupreset.py -i eq.txt -o eq.aupreset
+./scripts/rew2aupreset.py -i eq.txt -o eq.aupreset
 ```
 
 will copy the AUpreset where DAWs(1) expect to find them (2).
@@ -53,15 +55,18 @@ will copy the AUpreset where DAWs(1) expect to find them (2).
 
 # Running the App
 
-In developement mode, just do:
-
+## In developement mode
 
 ```
-reflex run
+export EQCONVERTER_ENV="dev"
+python3 ./backend.py &
+python3 ./scripts/debug_server.py &
 ```
+
+## In production
 
 If you want to expose it on the internet, you can use a reverse proxy, you will need a domain name and the associated certificate.
-In the etc directory, you will find a config file for nginx (the reverse proxy) and a systemd service config file.
+In the `etc` directory, you will find a config file for `nginx` (the reverse proxy) and a systemd service config file.
 
 the systemd file should go to `~/.config/systemd/user`, edit the path and then you can run it via:
 
@@ -71,7 +76,7 @@ systemctl --user start eqconverter.service
 systemctl --user status eqconverter.service
 ```
 
-the nginx file should go to ``/etc/nginx/site-available`. Look at the ngnix manual for more details.
+The nginx file should go to `/etc/nginx/site-available`. Look at the ngnix manual for more details.
 
 
 

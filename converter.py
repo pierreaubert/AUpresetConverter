@@ -7,8 +7,6 @@ from string import Template
 import struct
 from typing import Literal
 
-import reflex as rx
-
 from iir.filter_iir import Biquad, q2bw, bw2q
 from iir.filter_peq import peq_preamp_gain, Peq
 
@@ -182,7 +180,6 @@ def iir2peq(iir: IIR) -> Peq:
 
 def lines2iir(lines: list[str]) -> tuple[STATUS, IIR]:
     option = guess_format(lines)
-    rx.console_log("Guessed: {} format".format(option))
     if option == "AUNBandEQ":
         return parse_aunbandeq(lines)
     elif option == "APO":

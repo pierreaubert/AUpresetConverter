@@ -31,27 +31,39 @@ npm i .
 ## Run it
 
 ```
-./scripts/rew2aupreset.py -i eq.txt
+./eq2eq.py
 ```
+will display usage.
 
+## AUNBandEQ
+```
+./eq2eq.py -input eq.txt -format aupreset
+```
 will copy the AUpreset to the standard output.
 
-you may want to copy it where most DAW can find it:
+You may want to copy it where most DAW can find it:
 
 ```
-./scripts/rew2aupreset.py -i eq.txt -install
+./scripts/rew2aupreset.py -input eq.txt -format aupreset -install
 ```
 
-you can redirect to a file with the -o flag.
+you can redirect to a file with the -output flag.
 
 ```
-./scripts/rew2aupreset.py -i eq.txt -o eq.aupreset
+./scripts/rew2aupreset.py -input eq.txt -output eq.aupreset
 ```
 
 will copy the AUpreset where DAWs(1) expect to find them (2).
 
 - (1) at least Reaper and Logic will
 - (2) ~/Library/Audio/Presets/Apple/AUNBandEQ
+
+## REW TotalMix EQ
+```
+./eq2eq.py -input eq.txt -format rmetmeq -output eq.tmeq
+```
+You can then import the eq in TotalMix.
+![RME: how to import eq in a channel](/assets/totalmix-how-to-import-channel.png)
 
 # Running the App
 

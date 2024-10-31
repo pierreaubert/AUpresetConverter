@@ -1,0 +1,56 @@
+<Preset>
+  <Equalizer>
+    <Params>
+	<val e="LC Grade" v="1.00,"/>
+	<val e="LC Freq" v="20.00,"/>
+      <val e="Band1 Freq" v="  58.50,"/>
+      <val e="Band1 Q" v="4.97,"/>
+        <val e="Band1 Gain" v="-4.30,"/>
+      <val e="Band2 Freq" v=" 111.50,"/>
+      <val e="Band2 Q" v="1.00,"/>
+        <val e="Band2 Gain" v="5.00,"/>
+      <val e="Band3 Freq" v=" 124.50,"/>
+      <val e="Band3 Q" v="4.97,"/>
+        <val e="Band3 Gain" v="-12.10,"/>
+      <val e="Band4 Freq" v=" 225.00,"/>
+      <val e="Band4 Q" v="4.80,"/>
+        <val e="Band4 Gain" v="-3.60,"/>
+      <val e="Band5 Freq" v=" 275.00,"/>
+      <val e="Band5 Q" v="5.76,"/>
+        <val e="Band5 Gain" v="5.00,"/>
+      <val e="Band6 Freq" v=" 298.00,"/>
+      <val e="Band6 Q" v="3.51,"/>
+        <val e="Band6 Gain" v="-5.60,"/>
+      <val e="Band7 Freq" v=" 444.00,"/>
+      <val e="Band7 Q" v="7.59,"/>
+        <val e="Band7 Gain" v="1.40,"/>
+      <val e="Band8 Freq" v="1014.00,"/>
+      <val e="Band8 Q" v="4.80,"/>
+        <val e="Band8 Gain" v="2.90,"/>
+      <val e="Band9 Freq" v="1438.00,"/>
+      <val e="Band9 Q" v="4.36,"/>
+        <val e="Band9 Gain" v="-5.80,"/>
+      <val e="Band10 Freq" v="6240.00,"/>
+      <val e="Band10 Q" v="4.80,"/>
+        <val e="Band10 Gain" v="-4.20,"/>
+      <val e="Band11 Freq" v="9948.00,"/>
+      <val e="Band11 Q" v="1.43,"/>
+        <val e="Band11 Gain" v="-4.40,"/>
+      <val e="Band12 Freq" v="15918.00,"/>
+      <val e="Band12 Q" v="1.00,"/>
+        <val e="Band12 Gain" v="-2.50,"/>
+        <val e="Band1 Type" v="0.00,"/>
+        <val e="Band2 Type" v="0.00,"/>
+        <val e="Band3 Type" v="0.00,"/>
+        <val e="Band4 Type" v="0.00,"/>
+        <val e="Band5 Type" v="0.00,"/>
+        <val e="Band6 Type" v="0.00,"/>
+        <val e="Band7 Type" v="0.00,"/>
+        <val e="Band8 Type" v="0.00,"/>
+        <val e="Band9 Type" v="0.00,"/>
+        <val e="Band10 Type" v="0.00,"/>
+        <val e="Band11 Type" v="0.00,"/>
+        <val e="Band12 Type" v="0.00,"/>
+    </Params>
+  </Equalizer>
+</Preset>

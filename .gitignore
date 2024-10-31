@@ -119,3 +119,5 @@ app/
 .DS_Store
 dist
 *.tgz
+TAGS
+ETAGS

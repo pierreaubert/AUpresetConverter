@@ -1,0 +1,60 @@
+<Preset>
+  <Equalizer>
+    <Params>
+	<val e="LC Grade" v="1.00,"/>
+	<val e="LC Freq" v="20.00,"/>
+      <val e="Band1 Freq" v="  36.40,"/>
+      <val e="Band1 Q" v="13.11,"/>
+        <val e="Band1 Gain" v="-1.50,"/>
+      <val e="Band2 Freq" v="  38.20,"/>
+      <val e="Band2 Q" v="7.59,"/>
+        <val e="Band2 Gain" v="1.80,"/>
+      <val e="Band3 Freq" v=" 239.00,"/>
+      <val e="Band3 Q" v="6.86,"/>
+        <val e="Band3 Gain" v="2.20,"/>
+      <val e="Band4 Freq" v=" 260.00,"/>
+      <val e="Band4 Q" v="6.86,"/>
+        <val e="Band4 Gain" v="-4.80,"/>
+      <val e="Band5 Freq" v=" 279.00,"/>
+      <val e="Band5 Q" v="7.59,"/>
+        <val e="Band5 Gain" v="2.60,"/>
+      <val e="Band6 Freq" v=" 346.00,"/>
+      <val e="Band6 Q" v="9.01,"/>
+        <val e="Band6 Gain" v="-4.30,"/>
+      <val e="Band7 Freq" v=" 347.00,"/>
+      <val e="Band7 Q" v="4.23,"/>
+        <val e="Band7 Gain" v="3.00,"/>
+      <val e="Band8 Freq" v=" 438.00,"/>
+      <val e="Band8 Q" v="8.48,"/>
+        <val e="Band8 Gain" v="-1.80,"/>
+      <val e="Band9 Freq" v=" 514.00,"/>
+      <val e="Band9 Q" v="8.48,"/>
+        <val e="Band9 Gain" v="-3.00,"/>
+      <val e="Band10 Freq" v=" 539.00,"/>
+      <val e="Band10 Q" v="7.59,"/>
+        <val e="Band10 Gain" v="3.00,"/>
+      <val e="Band11 Freq" v=" 837.00,"/>
+      <val e="Band11 Q" v="7.59,"/>
+        <val e="Band11 Gain" v="3.00,"/>
+      <val e="Band12 Freq" v=" 892.00,"/>
+      <val e="Band12 Q" v="7.21,"/>
+        <val e="Band12 Gain" v="-2.50,"/>
+      <val e="Band13 Freq" v="3004.00,"/>
+      <val e="Band13 Q" v="7.59,"/>
+        <val e="Band13 Gain" v="0.80,"/>
+        <val e="Band1 Type" v="0.00,"/>
+        <val e="Band2 Type" v="0.00,"/>
+        <val e="Band3 Type" v="0.00,"/>
+        <val e="Band4 Type" v="0.00,"/>
+        <val e="Band5 Type" v="0.00,"/>
+        <val e="Band6 Type" v="0.00,"/>
+        <val e="Band7 Type" v="0.00,"/>
+        <val e="Band8 Type" v="0.00,"/>
+        <val e="Band9 Type" v="0.00,"/>
+        <val e="Band10 Type" v="0.00,"/>
+        <val e="Band11 Type" v="0.00,"/>
+        <val e="Band12 Type" v="0.00,"/>
+        <val e="Band13 Type" v="0.00,"/>
+    </Params>
+  </Equalizer>
+</Preset>

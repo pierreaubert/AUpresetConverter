@@ -1,6 +1,10 @@
 // import Plotly from 'plotly-dist-min';
 
-const backend = 'https://eqconverter.spinorama.org/v1';
+// if you change the version, you need to change the reverse proxy conf too in etc/nginx.conf
+const backend = '/v1'
+// depending on what the proxy support
+const https_headers = { headers: { 'Accept-Encoding': 'bz2, gzip, deflate', 'Content-Type': 'application/json' } };
+
 
 const hide = (elem) => {
     if (elem) {
@@ -13,8 +17,6 @@ const show = (elem) => {
         elem.hidden = false;
     }
 };
-
-const https_headers = { headers: { 'Accept-Encoding': 'bz2, gzip, deflate', 'Content-Type': 'application/json' } };
 
 // structure of the index.html
 // topbar
@@ -30,8 +32,13 @@ const https_headers = { headers: { 'Accept-Encoding': 'bz2, gzip, deflate', 'Con
 // convert
 //    +----- to format
 //                  +--- APO
+//                       +----- download
 //                  +--- AUPreset
-//    +----- download
+//                       +----- download
+//                  +--- RMETotalMixChannelEQ
+//                       +----- download
+//                  +--- RMETotalMixRoomEQ
+//                       +----- download
 
 const topBar = document.querySelector('#topBar');
 const navBar = document.querySelector('#navBar');
@@ -56,8 +63,10 @@ const formConvertSelect = formConvert.querySelector('#selectFormat');
 const formConvertSubmit = formConvert.querySelector('#submitButton');
 
 const resultsEQ = stepConvert.querySelector('#displayEQ');
-const resultsEQAPO = resultsEQ.querySelector('#displayEQAPO');
-const resultsEQAUPreset = resultsEQ.querySelector('#displayEQAUPreset');
+const resultsEQAPO = resultsEQ.querySelector('#displayEQ-APO');
+const resultsEQAUPreset = resultsEQ.querySelector('#displayEQ-AUPreset');
+const resultsEQRMETotalMixChannel = resultsEQ.querySelector('#displayEQ-RME-TotalMix-Channel');
+const resultsEQRMETotalMixRoom= resultsEQ.querySelector('#displayEQ-RME-TotalMix-Room');
 
 const formDownloadAPO = stepConvert.querySelector('#downloadAPO');
 const formDownloadAUPreset = stepConvert.querySelector('#downloadAUPreset');
@@ -175,7 +184,7 @@ async function loadFromSpinorama() {
 }
 
 async function displayEqAPO(hash) {
-    const eq = document.querySelector('#displayEQAPO p');
+    const eq = document.querySelector('#displayEQ-APO p');
     const url = backend + '/eq/target/apo';
     if (hash === null || hash.length !== 128) {
         return;
@@ -254,9 +263,47 @@ async function displayEqAUPreset(hash) {
     const response = await fetch(url + '?hash=' + hash, https_headers);
 
     const data = await response.json();
-    const eq = document.querySelector('#displayEQAUPreset p');
+    const eq = document.querySelector('#displayEQ-AUPreset p');
     if (eq && data.length >= 1) {
         const lines = data[1].split('\n');
+        let content = '';
+        lines.forEach((line) => {
+            content += xml2html(line) + '<br/>';
+        });
+        eq.innerHTML = content;
+    }
+}
+
+async function displayEqRMETotalMixChannel(hash) {
+    const url = backend + '/eq/target/rme_totalmix_channel';
+    if (hash === null || hash.length !== 128) {
+        return;
+    }
+    const response = await fetch(url + '?hash=' + hash, https_headers);
+
+    const data = await response.json();
+    const eq = document.querySelector('#displayEQ-RME-TotalMix-Channel p');
+    if (eq) {
+        const lines = data.split('\n');
+        let content = '';
+        lines.forEach((line) => {
+            content += xml2html(line) + '<br/>';
+        });
+        eq.innerHTML = content;
+    }
+}
+
+async function displayEqRMETotalMixRoom(hash) {
+    const url = backend + '/eq/target/rme_totalmix_room';
+    if (hash === null || hash.length !== 128) {
+        return;
+    }
+    const response = await fetch(url + '?hash=' + hash, https_headers);
+
+    const data = await response.json();
+    const eq = document.querySelector('#displayEQ-RME-TotalMix-Room p');
+    if (eq) {
+        const lines = data.split('\n');
         let content = '';
         lines.forEach((line) => {
             content += xml2html(line) + '<br/>';
@@ -436,12 +483,20 @@ window.onload = () => {
             show(resultsEQ);
 	    hide(resultsEQAPO);
 	    hide(resultsEQAUPreset);
+	    hide(resultsEQRMETotalMixChannel)
+	    hide(resultsEQRMETotalMixRoom)
 	    if (method === 'APO') {
 		displayEqAPO(hash);
 		show(resultsEQAPO);
 	    } else if (method === 'AUPreset') {
 		displayEqAUPreset(hash);
 		show(resultsEQAUPreset);
+	    } else if (method === 'RMEtmeq') {
+		displayEqRMETotalMixChannel(hash);
+		show(resultsEQRMETotalMixChannel);
+	    } else if (method === 'RMEtmreq') {
+		displayEqRMETotalMixRoom(hash);
+		show(resultsEQRMETotalMixRoom);
 	    }
         }
     };

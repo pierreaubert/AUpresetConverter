@@ -77,8 +77,9 @@
 		<option value="APO">APO</option>
 <!--
 		<option value="Roon">Roon</option>
-		<option value="RME">RME</option>
 -->
+		<option value="RMEtmeq">RME TotalMix Chanel EQ</option>
+		<option value="RMEtmreq">RME TotalMix Room EQ</option>
 	      </select>
 	    </div>
 	  </div>
@@ -88,34 +89,61 @@
 	</div>
       </div>
       <div id="displayEQ" hidden>
-	<div class="box" id="displayEQAPO">
+	<div class="box" id="displayEQ-APO">
 	  <div class="content">
 	    <div class="field">
 	      <label class="label">EQ APO format</label>
 	    </div>
-	    <blockquote>
+	    <code>
 	      <p class="is-family-monospace">
 	      </p>
-	    </blockquote>
+	    </code>
 	    <div class="control">
 	      <button class="button is-link" id="downloadAPO">Download</button>
 	    </div>
 	  </div>
 	</div>
-	<div class="box" id="displayEQAUPreset">
+	<div class="box" id="displayEQ-AUPreset">
 	  <div class="content">
 	    <div class="field">
 	      <label class="label">EQ AUPreset format</label>
 	    </div>
-	    <blockquote>
+	    <code>
 	      <p class="is-family-monospace">
 	      </p>
-	    </blockquote>
+	    </code>
 	    <div class="control">
 	      <button class="button is-link" id="downloadAUPreset">Download</button>
 	    </div>
 	  </div>
 	</div>
+	<div class="box" id="displayEQ-RME-TotalMix-Channel">
+	  <div class="content">
+	    <div class="field">
+	      <label class="label">EQ TotalMix Channel EQ format</label>
+	    </div>
+	    <code>
+	      <p class="is-family-monospace">
+	      </p>
+	    </code>
+	    <div class="control">
+	      <button class="button is-link" id="downloadRMEtmeq">Download</button>
+	    </div>
+	  </div>
+	</div>
+	<div class="box" id="displayEQ-RME-TotalMix-Room">
+	  <div class="content">
+	    <div class="field">
+	      <label class="label">EQ TotalMix Room EQ format</label>
+	    </div>
+	    <code>
+	      <p class="is-family-monospace">
+	      </p>
+	    </code>
+	    <div class="control">
+	      <button class="button is-link" id="downloadRMEtmreq">Download</button>
+	    </div>
+	  </div>
       </div>
     </div>
     <script src="index.js" type="module"></script>

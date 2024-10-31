@@ -17,7 +17,14 @@ import numpy as np
 
 from iir.filter_iir import Biquad
 from iir.filter_peq import peq_format_apo, peq_build
-from converter import IIR, lines2iir, iir2aupreset, iir2peq
+from converter import (
+    IIR,
+    lines2iir,
+    iir2aupreset,
+    iir2peq,
+    iir2rme_totalmix_channel,
+    iir2rme_totalmix_room,
+)
 
 
 # ----------------------------------------------------------------------
@@ -25,7 +32,7 @@ from converter import IIR, lines2iir, iir2aupreset, iir2peq
 # ----------------------------------------------------------------------
 
 API_VERSION = "v1"
-CURRENT_VERSION = 2
+CURRENT_VERSION = 3
 SOFTWARE_VERSION = f"{API_VERSION}.{CURRENT_VERSION}"
 
 # ----------------------------------------------------------------------
@@ -83,7 +90,7 @@ def create_table():
     connection.close()
 
 
-def create_eq(eq: EQ) -> int:
+def create_eq(eq: EQ) -> bool:
     connection = create_connection()
     cursor = connection.cursor()
     cursor.execute(
@@ -92,7 +99,7 @@ def create_eq(eq: EQ) -> int:
     )
     connection.commit()
     connection.close()
-    return 0
+    return True
 
 
 def db_get_eqs() -> list[tuple[str, str]]:
@@ -154,11 +161,10 @@ backend = FastAPI(
     on_startup=[load_metadata],
 )
 
-origins = [
-]
+origins = []
 
-if ENV == 'dev':
-    origins.append('https://127.0.0.1')
+if ENV == "dev":
+    origins.append("https://127.0.0.1")
     backend.add_middleware(
         CORSMiddleware,
         allow_origins=origins,
@@ -229,8 +235,8 @@ async def get_speaker_eqdata(
                 )
             lines.append("\n")
             buffer = "\n".join(lines).encode(encoding="utf-8")
-            status, hash_or_msg = storeEQ(speaker_name, buffer)
-            if not status:
+            success, hash_or_msg = storeEQ(speaker_name, buffer)
+            if not success:
                 raise HTTPException(status_code=500, detail=hash_or_msg)
             eq["hash"] = hash_or_msg
             flat.append(
@@ -256,8 +262,8 @@ def storeEQ(filename: str, buffer: bytes) -> tuple[bool, str]:
     lines = input.split("\n")
     if not lines or len(lines) == 0:
         return False, "There was an error parsing the file: buffer splitting"
-    status, iir = lines2iir(lines)
-    if status != 0:
+    success, iir = lines2iir(lines)
+    if not success:
         return False, "There was an error parsing the file as an EQ"
     hash = eq2hash(buffer)
     if not hash:
@@ -267,8 +273,8 @@ def storeEQ(filename: str, buffer: bytes) -> tuple[bool, str]:
         )
     name = filename if filename else "eq"
     eq = EQ(hash=hash, name=name, peq=str(iir))
-    status = create_eq(eq)
-    if status != 0:
+    success = create_eq(eq)
+    if not success:
         return False, "Failed to save peq"
     return True, hash
 
@@ -288,8 +294,8 @@ async def upload_eq(file: UploadFile = File(...)):
                 "message": "There was an error with the name of the file",
                 "hash": None,
             }
-        status, hash_or_msg = storeEQ(file.filename, buffer)
-        if not status:
+        success, hash_or_msg = storeEQ(file.filename, buffer)
+        if not success:
             return {
                 "message": hash_or_msg,
                 "hash": None,
@@ -330,6 +336,28 @@ async def get_eq_apo(hash: str):
     return JSONResponse(content=encoded)
 
 
+@backend.get(f"/{API_VERSION}/eq/target/rme_totalmix_channel", tags=["EQ"])
+async def get_eq_rme_totalmix_channel(hash: str):
+    _, iir = db_get_eq(hash)
+    success, content = iir2rme_totalmix_channel(iir)
+    if not success:
+        print(content)
+        raise HTTPException(status_code=500, detail=iir)
+    encoded = jsonable_encoder(content)
+    return JSONResponse(content=encoded)
+
+
+@backend.get(f"/{API_VERSION}/eq/target/rme_totalmix_room", tags=["EQ"])
+async def get_eq_rme_totalmix_room(hash_left: str, hash_right: str):
+    _, iir_left = db_get_eq(hash_left)
+    _, iir_right = db_get_eq(hash_right)
+    success, content = iir2rme_totalmix_room(iir_left, iir_right)
+    if not success:
+        raise HTTPException(status_code=500, detail='{} {}'.format(iir_left, iir_right))
+    encoded = jsonable_encoder(content)
+    return JSONResponse(content=encoded)
+
+
 @backend.get(f"/{API_VERSION}/eq/graph_spl", tags=["EQ"])
 async def get_eq_graph_spl(hash: str):
     _, iir = db_get_eq(hash)
@@ -343,7 +371,7 @@ async def get_eq_graph_spl(hash: str):
 
 @backend.get(f"/{API_VERSION}/eq/graph_spl_details", tags=["EQ"])
 async def get_eq_graph_spl_details(hash: str):
-    name, iir = db_get_eq(hash)
+    _, iir = db_get_eq(hash)
     peq = iir2peq(iir)
     freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 200)
     spl = {}

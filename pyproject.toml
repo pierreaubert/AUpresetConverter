@@ -2,7 +2,7 @@
 name = "AUpresetConverter"
 description = "Convert a REW eq into an AUpreset for AUNBandEQ"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "Apache-2"
 authors = [
     { name = "Pierre Aubert", email = "pierre@spinorama.org" },

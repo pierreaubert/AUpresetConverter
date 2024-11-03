@@ -1,10 +1,12 @@
 numpy
 defusedxml
-pyright
-ruff
-reflex
 pandas
 numpy
 plotly
-requests
+fastapi[standard]
+uvicorn>=0.32.0
+sqlite4
+
+
+
 

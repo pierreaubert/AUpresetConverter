@@ -1,0 +1,18 @@
+{
+  "dependencies": {
+    "bulma": "^1.0.2",
+    "npm": "^10.9.0",
+    "plotly.js-dist-min": "^2.35.2"
+  },
+  "devDependencies": {
+    "eslint": "^9.13.0",
+    "eslint-config-prettier": "^9.1.0",
+    "oxlint": "^0.10.3",
+    "prettier": "^3.3.3",
+    "w3c-html-validator": "^1.8.2"
+  },
+  "scripts": {
+    "format": "prettier",
+    "oxlint": "npx oxlint@latest"
+  }
+}

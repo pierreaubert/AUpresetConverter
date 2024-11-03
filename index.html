@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+  <head>
+    <title>Manage EQ files</title>
+    <meta content="text/html;charset=utf-8" http-equiv="content-type">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <link href="https://spinorama.org/css/bulma-1.0.1.min.css" rel="stylesheet">
+    <style>
+     .is-active {
+       display: initial;
+     }
+     .hidden {
+       display: none;
+     }
+     .graph {
+       width: max(400px, 100%);
+     }
+     .card-min {
+       min-block-size: min(340px, 60%);
+       width: max(340px, 25%);
+     }
+    </style>
+
+  </head>
+  <body>
+
+    <div class="includes" data-name="assets/symbols" data-ext="xml">Loading...</div>
+    <div class="includes" data-name="assets/menu" data-ext="html">Loading...</div>
+
+    <div class="section">
+      <nav id="stepSelect" class="panel">
+	<p class="panel-heading">Pick an EQ file</p>
+	<p class="panel-tabs">
+	  <a class="is-active" id="tabUpload" data-target="blockUpload">Upload</a>
+	  <a id="tabSpin" data-target="blockSpin">From speaker database</a>
+	</p>
+	<div class="panel-block is-active" id='blockUpload'>
+	  <form enctype="multipart/form-data" id="uploadEQ" method="post">
+	    <div class="field">
+	      <div class="control">
+		<div class="file is-boxed">
+		  <label class="file-label">
+		    <input accept="plain/*" class="file-input" id="file" name="file" type="file" multiple>
+		    <span class="file-cta">
+		      <span class="file-label"> Choose a file… </span>
+		    </span>
+		  </label>
+		</div>
+	      </div>
+	    </div>
+	  </form>
+	  <div class="content" id="file-name"></div>
+	</div>
+	<div class="panel-block" id="blockSpin" hidden>
+	  <form id="getEQFromSpinorama" method="get">
+	    <div class="field">
+	      <label class="label">From speaker database</label>
+	      <div class="control">
+		<select id="selectSpeakers">
+		</select>
+	      </div>
+	      <div class="control">
+		<select id="selectSpeakerEQ" hidden>
+		</select>
+	      </div>
+	    </div>
+	  </form>
+	</div>
+      </nav>
+    </div>
+
+    <div class="section" id="plots" hidden></div>
+
+    <div id="stepConvert" class="section" hidden>
+      <nav class="panel is-primary" id="convertEQ">
+	<p class="panel-heading">Convert</p>
+	<p class="panel-block">
+	  <div class="box">
+	    <div class="field">
+	      <label class="label">Select format and convert:</label>
+	    </div>
+	    <div class="field has-addons">
+	      <div class="control">
+		<div class="select">
+		  <label for="selectFormat"></label>
+		  <select id="selectFormat" name="selectFormat">
+		    <option value="aupreset">AUPreset</option>
+		    <option value="apo">APO</option>
+		    <option value="rmetmeq">Rme TotalMix Chanel EQ</option>
+		    <option value="rmetmreq">Rme TotalMix Room EQ</option>
+		  </select>
+		</div>
+	      </div>
+	      <div class="control">
+		<button class="button is-link" id="submitButton">Convert</button>
+	      </div>
+	    </div>
+	  </div>
+	</p>
+	<p class="panel-tabs" id="tabs"></p>
+      </nav>
+    </div>
+
+    <script src="index.js" type="module"></script>
+
+  </body>
+</html>

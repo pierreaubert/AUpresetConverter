@@ -55,6 +55,7 @@
 .dmypy.json
 .eggs/
 .env
+.idea
 .hypothesis/
 .installed.cfg
 .ipynb_checkpoints
@@ -113,3 +114,11 @@ var/
 venv.bak/
 venv/
 wheels/
+node_modules
+app/
+.DS_Store
+dist
+*.tgz
+TAGS
+ETAGS
+logs

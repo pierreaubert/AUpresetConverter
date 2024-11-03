@@ -1,0 +1,46 @@
+<Preset>
+  <Equalizer>
+    <Params>
+	<val e="LC Grade" v="1.00,"/>
+	<val e="LC Freq" v="20.00,"/>
+      <val e="Band1 Freq" v=" 105.00,"/>
+      <val e="Band1 Q" v="0.70,"/>
+        <val e="Band1 Gain" v="-0.30,"/>
+      <val e="Band2 Freq" v=" 205.00,"/>
+      <val e="Band2 Q" v="0.55,"/>
+        <val e="Band2 Gain" v="-6.50,"/>
+      <val e="Band3 Freq" v="7125.00,"/>
+      <val e="Band3 Q" v="3.53,"/>
+        <val e="Band3 Gain" v="3.50,"/>
+      <val e="Band4 Freq" v=" 325.00,"/>
+      <val e="Band4 Q" v="1.31,"/>
+        <val e="Band4 Gain" v="8.10,"/>
+      <val e="Band5 Freq" v="9024.00,"/>
+      <val e="Band5 Q" v="2.74,"/>
+        <val e="Band5 Gain" v="3.00,"/>
+      <val e="Band6 Freq" v="10000.00,"/>
+      <val e="Band6 Q" v="0.70,"/>
+        <val e="Band6 Gain" v="-3.20,"/>
+      <val e="Band7 Freq" v="3584.00,"/>
+      <val e="Band7 Q" v="5.05,"/>
+        <val e="Band7 Gain" v="3.30,"/>
+      <val e="Band8 Freq" v="  45.00,"/>
+      <val e="Band8 Q" v="1.64,"/>
+        <val e="Band8 Gain" v="-0.80,"/>
+      <val e="Band9 Freq" v="  66.00,"/>
+      <val e="Band9 Q" v="3.99,"/>
+        <val e="Band9 Gain" v="1.60,"/>
+      <val e="Band10 Freq" v="4306.00,"/>
+      <val e="Band10 Q" v="6.00,"/>
+        <val e="Band10 Gain" v="-2.10,"/>
+        <val e="Band2 Type" v="0.00,"/>
+        <val e="Band3 Type" v="0.00,"/>
+        <val e="Band4 Type" v="0.00,"/>
+        <val e="Band5 Type" v="0.00,"/>
+        <val e="Band7 Type" v="0.00,"/>
+        <val e="Band8 Type" v="0.00,"/>
+        <val e="Band9 Type" v="0.00,"/>
+        <val e="Band10 Type" v="0.00,"/>
+    </Params>
+  </Equalizer>
+</Preset>

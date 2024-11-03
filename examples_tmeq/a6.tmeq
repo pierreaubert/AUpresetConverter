@@ -1,0 +1,12 @@
+<Preset>
+  <Equalizer>
+    <Params>
+	<val e="LC Grade" v="1.00,"/>
+	<val e="LC Freq" v="20.00,"/>
+      <val e="Band1 Freq" v="  38.60,"/>
+      <val e="Band1 Q" v="7.59,"/>
+        <val e="Band1 Gain" v="2.00,"/>
+        <val e="Band1 Type" v="0.00,"/>
+    </Params>
+  </Equalizer>
+</Preset>

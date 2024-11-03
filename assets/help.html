@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html data-theme="light" lang="en">
+<head>
+    <title>Manage EQ files</title>
+    <meta content="text/html;charset=utf-8" http-equiv="content-type">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+
+    <link href="https://spinorama.org/css/bulma-1.0.1.min.css" rel="stylesheet">
+
+</head>
+<body>
+
+  <div class="includes" data-name="symbols" data-ext="xml">Loading...</div>
+  <div class="includes" data-name="menu" data-ext="html">Loading...</div>
+
+  <div class="container has-background-white-bis">
+    <div class="section">
+      <div class="content">
+	<h1>FAQ</h1>
+	<h2>Supported format</h2>
+	<dl>
+	  <dt>AUPreset</dt>
+	  <dd>XML format used by macOS for Audio Unit.</dd>
+	  <dt>APO</dt>
+	  <dd>text format used by EqualizerAPO on Windows.</dd>
+	  <dt>Roon</dt>
+	  <dd>text format used by the Roon software.</dd>
+	  <dt>RME</dt>
+	  <dd>XML format used by the RME audio interfaces.</dd>
+	</dl>
+      </div>
+    </div>
+  </div>
+
+  <div class="container has-background-white-bis">
+    <div class="section">
+      <div class="content">
+	<h1>Hardware</h1>
+	<h2>RME</h2>
+	<p>
+	You can upload an EQ to all RME audio interfaces that support [TotalMix](https://rme-audio.de/totalmix-fx.html).
+	The following interfaces have been tested: UFX ii, UFX+, ADI2.
+	</p>
+	<p>How to import an EQ? there are at least 2 cases either for a channel or using the room eq.</p>
+	<p>Import in a channel
+	  <img src="/assets/totalmix-how-to-import-channel.png">
+	</p>
+	<p>Import for room eq
+	  <img src="/assets/totalmix-room-eq-import.png">
+	</p>
+	<p>RME has excellent documentation for all their products</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    window.onload = () => {
+    const components = document.querySelectorAll('.includes')
+    const loadComponent = async c => {
+        const { name, ext } = c.dataset
+        const response = await fetch(`${name}.${ext}`)
+        const html = await response.text()
+        c.innerHTML = html
+    }
+    [...components].forEach(loadComponent);
+    }
+  </script>
+
+</body>
+</html>

@@ -43,9 +43,6 @@ const show = (elem) => {
 //                  +--- RmeTotalMixRoomEQ
 //                       +----- download
 
-const topBar = document.querySelector('#topBar');
-const navBar = document.querySelector('#navBar');
-
 const stepSelect = document.querySelector('#stepSelect');
 
 const formUpload = stepSelect.querySelector('#uploadEQ');
@@ -62,13 +59,10 @@ const formConvert = stepConvert.querySelector('#convertEQ');
 const formConvertSelect = formConvert.querySelector('#selectFormat');
 const formConvertSubmit = formConvert.querySelector('#submitButton');
 
-const resultsEQ = stepConvert.querySelector('#displayEQ');
-
 // ----------------------------------------------------------------------
 // state abstraction
 // ----------------------------------------------------------------------
 class EQState {
-
     constructor(hash, name) {
         if (hash.length === 128) {
             this._hash = hash;
@@ -175,41 +169,41 @@ function assignDiv(selector, dataList, defText, selected) {
 function toggleTab(panel, tabId, blockId) {
     // make tabId active and not the others
     const tabs = panel.querySelectorAll('.panel-tabs a');
-    tabs.forEach( (tab) => {
-	if (tab.id === tabId) {
-	    tab.classList.add('is-active');
-	} else {
-	    if (tab.classList.contains('is-active')) {
+    tabs.forEach((tab) => {
+        if (tab.id === tabId) {
+            tab.classList.add('is-active');
+        } else {
+            if (tab.classList.contains('is-active')) {
                 tab.classList.remove('is-active');
-	    }
-	}
+            }
+        }
     });
     // show blockId and hide others
     const blocks = panel.querySelectorAll('div .panel-block');
-    blocks.forEach( (block) => {
-	if (block.id === blockId) {
-	    block.style.display = 'block';
-	    show(block);
-	} else {
-	    block.style.display = 'none';
-	    hide(block);
-	}
+    blocks.forEach((block) => {
+        if (block.id === blockId) {
+            block.style.display = 'block';
+            show(block);
+        } else {
+            block.style.display = 'none';
+            hide(block);
+        }
     });
 }
 
 function tabsAddEvents(panel) {
     // add click event to each tabs of the panel
-    if ( panel ) {
-	const tabs = panel.querySelectorAll('.panel-tabs a');
-	tabs.forEach( (tab) => {
-	    tab.onclick = () => {
-		toggleTab(panel, tab.id, tab.dataset.target);
-	    }
-	});
-	// call the first one by default
-	if (tabs.length > 0 ) {
-	    toggleTab(panel, tabs[0].id, tabs[0].dataset.target);
-	}
+    if (panel) {
+        const tabs = panel.querySelectorAll('.panel-tabs a');
+        tabs.forEach((tab) => {
+            tab.onclick = () => {
+                toggleTab(panel, tab.id, tab.dataset.target);
+            };
+        });
+        // call the first one by default
+        if (tabs.length > 0) {
+            toggleTab(panel, tabs[0].id, tabs[0].dataset.target);
+        }
     }
 }
 
@@ -231,7 +225,6 @@ async function uploadFiles(form) {
     };
 
     const response = await fetch(url, fetchOptions);
-    console.log('ok=' + response.ok + ' status=' + response.status);
     const text = await response.json();
     return text;
 }
@@ -260,10 +253,10 @@ async function setSpeakerEQ(speakerName) {
                     hash = v['hash'];
                 }
             });
-            const eq = new EQState(hash, speakerName+' - '+selectedSpeakerEQ);
+            const eq = new EQState(hash, speakerName + ' - ' + selectedSpeakerEQ);
             state.reset();
             state.setItems(eq);
-	    plotState();
+            plotState();
             show(stepConvert);
         } else {
             hide(plots);
@@ -331,9 +324,10 @@ function text2code(text) {
         for (let i = 0; i < indent; i++) {
             space += space4;
         }
-	if (line.indexOf('<?xml') === 0 || line.indexOf('<!DOCTYPE') === 0 ) {
-	    space = '';
-	}
+        if (line.indexOf('<?xml') === 0 || line.indexOf('<!DOCTYPE') === 0 || line.indexOf('<Preset>') === 0) {
+            space = '';
+            indent = 0;
+        }
         const encoded = xml2html(line);
         code += space + encoded + '<br/>';
     });
@@ -347,114 +341,119 @@ function text2code(text) {
 class Format {
     // each format need to support display (the converted format) and download
 
-    async display(div, hash) {
-    }
+    async display(fileName, div, hash) {}
 
-    async download(div, hash) {
-    }
+    async download(fileName, hash) {}
+}
 
-    static downloadViaData(fileName, returnType, data) {
-	let element = document.createElement('a');
-	element.setAttribute('href', 'data:text/'+returnType+';charset=utf-8, ' + encodeURIComponent(data));
-	element.setAttribute('download', fileName);
-	document.body.appendChild(element);
-	element.click();
-	document.body.removeChild(element);
-    }
+function downloadViaData(fileName, returnType, data) {
+    let element = document.createElement('a');
+    element.setAttribute('href', 'data:text/' + returnType + ';charset=utf-8, ' + encodeURIComponent(data));
+    element.setAttribute('download', fileName);
+    console.log('download: ' + fileName);
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
 }
 
 class APO extends Format {
-
-    async display(div, hash) {
-	const url = backend + '/eq/target/apo';
-	const response = await fetch(url + '?hash=' + hash, https_headers);
-	const data = await response.json();
-	div.querySelector('code').innerHTML = text2code(data);
-	show(div);
+    async display(fileName, div, hash) {
+        const url = backend + '/eq/target/apo';
+        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const data = await response.json();
+        div.querySelector('code').innerHTML = text2code(data);
+        div.querySelector('#download').onclick = () => {
+            this.download(fileName, hash);
+        };
+        show(div);
     }
 
     async download(fileName, hash) {
-	const url = backend + '/eq/target/apo';
-	const response = await fetch(url + '?hash=' + hash, https_headers);
-	const data = await response.json();
-	super.downloadViaData(fileName, 'plain', data);
+        const url = backend + '/eq/target/apo';
+        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const data = await response.json();
+        downloadViaData(fileName, 'plain', data);
     }
-
 }
 
 const apo = new APO();
 
 class AUPreset extends Format {
-
-    async display(div, hash) {
-	const url = backend + '/eq/target/aupreset';
-	const response = await fetch(url + '?hash=' + hash, https_headers);
-	const data = await response.json();
-	div.querySelector('code').innerHTML = text2code(data[1]);
-	show(div);
+    async display(fileName, div, hash) {
+        const url = backend + '/eq/target/aupreset';
+        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const data = await response.json();
+        div.querySelector('code').innerHTML = text2code(data[1]);
+        div.querySelector('#download').onclick = () => {
+            this.download(fileName, hash);
+        };
+        show(div);
     }
 
     async download(fileName, hash) {
-	const url = backend + '/eq/target/aupreset';
-	const response = await fetch(url + '?hash=' + hash, https_headers);
-	const data = await response.json();
+        const url = backend + '/eq/target/aupreset';
+        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const data = await response.json();
 
-	let aupresetName = fileName;
-	if (aupresetName.length > 4) {
+        let aupresetName = fileName;
+        if (aupresetName.length > 4) {
             aupresetName = fileName.slice(0, -4) + '.aupreset';
-	}
-	super.downloadViaData(aupresetName, 'xml', data);
+        }
+        downloadViaData(aupresetName, 'xml', data);
     }
-
 }
 
 const aupreset = new AUPreset();
 
 class RMETotalMixChannel extends Format {
-
-    async display(div, hash) {
-	const url = backend + '/eq/target/rme_totalmix_channel';
-	const response = await fetch(url + '?hash=' + hash, https_headers);
-	const data = await response.json();
-	div.querySelector('code').innerHTML = text2code(data);
-	show(div);
+    async display(fileName, div, hash) {
+        const url = backend + '/eq/target/rme_totalmix_channel';
+        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const data = await response.json();
+        div.querySelector('code').innerHTML = text2code(data);
+        div.querySelector('#download').onclick = () => {
+            this.download(fileName, hash);
+        };
+        show(div);
     }
 
     async download(fileName, hash) {
-	const url = backend + '/eq/target/rme_totalmix_channel';
-	const response = await fetch(url + '?hash=' + hash, https_headers);
-	const data = await response.json();
+        const url = backend + '/eq/target/rme_totalmix_channel';
+        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const data = await response.json();
 
-	let tmeqName = fileName;
-	if (tmeqName.length > 4) {
+        let tmeqName = fileName;
+        if (tmeqName.length > 4) {
             tmeqName = fileName.slice(0, -4) + '.tmeq';
-	}
-	super.downloadViaData(tmeqName, 'xml', data);
+        }
+        downloadViaData(tmeqName, 'xml', data);
     }
 }
 
 const rmetotalmixchannel = new RMETotalMixChannel();
 
 class RmeTotalMixRoom extends Format {
-
-    async display(div, hash0, hash1) {
-	const url = backend + '/eq/target/rme_totalmix_room';
-	const response = await fetch(url + '?hash_left=' + hash0 + '&hash_right=' + hash1, https_headers);
-	const data = await response.json();
-	div.querySelector('code').innerHTML = text2code(data);
-	show(div);
+    async display(fileName, div, hash0, hash1) {
+        const url = backend + '/eq/target/rme_totalmix_room';
+        const response = await fetch(url + '?hash_left=' + hash0 + '&hash_right=' + hash1, https_headers);
+        const data = await response.json();
+        div.querySelector('code').innerHTML = text2code(data);
+        div.querySelector('#download').onclick = () => {
+            this.download(fileName, hash0, hash1);
+        };
+        show(div);
     }
 
     async download(fileName, hash0, hash1) {
-	const url = backend + '/eq/target/rme_totalmix_channel';
-	const response = await fetch(url + '?hash_left=' + hash0 + '&hash_right=' + hash1, https_headers);
-	const data = await response.json();
+        const url = backend + '/eq/target/rme_totalmix_channel';
+        const response = await fetch(url + '?hash_left=' + hash0 + '&hash_right=' + hash1, https_headers);
+        const data = await response.json();
 
-	let tmreqName = fileName;
-	if (tmreqName.length > 4) {
-            tmreqName = fileName.slice(0, -4) + '.tmeq';
-	}
-	super.downloadViaData(tmreqName, 'xml', data);
+        let tmreqName = fileName;
+        if (tmreqName.length > 4) {
+            tmreqName = fileName.slice(0, -4) + '.tmreq';
+        }
+        downloadViaData(tmreqName, 'xml', data);
     }
 }
 
@@ -606,12 +605,12 @@ async function plotState() {
 <a ${classActive} id="name${k}" data-target="plot${k}">${state.name(k)}</a>
 `;
         contentBlocks += `
-<a class="panel-block ${active}" id="plot${k}" ${hidden}>
+<div class="panel-block ${active}" id="plot${k}" ${hidden}>
   <div class="columns is-desktop">
     <div class="column is-half" id="plotIIR"></div>
     <div class="column is-half" id="plotPEQ"></div>
   </div>
-</a>
+</div>
 `;
     }
     const contentPlots = `
@@ -647,99 +646,89 @@ ${contentBlocks}
 // ----------------------------------------------------------------------
 
 async function convertState(method) {
-
     let contentTabs = '';
-    const blocks = stepConvert.querySelectorAll('div .panel-block');
+
     for (let k = 0; k < state.length(); k++) {
         let classActive = '';
-        let active = '';
-        let hidden = 'hidden';
         if (k == 0) {
-            active = ' is-active';
             classActive = ' class="is-active"';
-            hidden = '';
         }
-        contentTabs += `
-  <a${classActive} id="name${k}" data-target="convert${k}">${state.name(k)}</a>
-`;
+        contentTabs += `<a${classActive} id="name${k}" data-target="convert${k}">${state.name(k)}</a>`;
     }
 
+    // show
     show(stepConvert);
-
+    // set new tabs
     stepConvert.querySelector('#tabs').innerHTML = contentTabs;
-    const panel = stepConvert.querySelector('nav');
-    // remove old blocks
+    // remove old blocks if we have some
+    const panel = stepConvert.querySelector('#convertEQ');
     const oldBlocks = panel.querySelectorAll('div.panel-block');
-    oldBlocks.forEach((node) => panel.removeChild(node));
-    // add new ones
-    for (let k = 0; k < state.length() ; k++ ) {
-	const fragment = new DocumentFragment();
-	const div = document.createElement('div');
-	div.setAttribute('class', 'panel-block');
-	div.setAttribute('id', 'convert'+k);
-	div.innerHTML = `
+    oldBlocks.forEach((node) => {
+        panel.removeChild(node);
+    });
+    // add new blocks
+    for (let k = 0; k < state.length(); k++) {
+        const fragment = new DocumentFragment();
+        const div = document.createElement('div');
+        div.setAttribute('class', 'panel-block');
+        div.setAttribute('id', 'convert' + k);
+        div.innerHTML = `
     <div id="APO" hidden>
-      <code>
+      <code class="is-size-7">
       </code>
       <div class="control">
         <button class="button is-link" id="download">Download</button>
       </div>
     </div>
     <div id="AUPreset" hidden>
-      <code>
+      <code class="is-size-7">
       </code>
       <div class="control">
         <button class="button is-link" id="download">Download</button>
       </div>
     </div>
     <div id="Rme-TotalMix-Channel" hidden>
-      <code>
+      <code class="is-size-7">
       </code>
       <div class="control">
         <div class="button is-link" id="download">Download</div>
       </div>
     </div>
     <div id="Rme-TotalMix-Room" hidden>
-      <code>
+      <code class="is-size-7">
       </code>
       <div class="control">
         <button class="button is-link" id="download">Download</button>
       </div>
     </div>
 `;
-	fragment.appendChild(div);
-	panel.appendChild(fragment);
+        fragment.appendChild(div);
+        panel.appendChild(fragment);
     }
-    const newBlocks = panel.querySelectorAll('div.panel-block');
-    newBlocks.forEach((node) => {
-	const download = node.querySelector('#download');
-	download.onclick = async () => {
-	    console.log('calling download');
-	};
-    });
-
     for (let k = 0; k < state.length(); k++) {
-	const hash = state.hash(k);
-        const converts = stepConvert.querySelector('#convert' + k);
-	const eApo = converts.querySelector('#APO');
-	const eAUPreset = converts.querySelector('#AUPreset');
-	const eRmeTotalMix = converts.querySelector('#Rme-TotalMix-Channel');
-	const eRmeTotalRoom = converts.querySelector('#Rme-TotalMix-Room');
-	if (method == 'apo') {
-	    apo.display(eApo, hash);
-	} else if (method == 'aupreset') {
-	    aupreset.display(eAUPreset, hash);
-	} else if (method == 'rmetmeq') {
-	    rmetotalmixchannel.display(eRmeTotalMixChannel, hash);
-	} else if (method == 'rmetmreq') {
-	    // would be better with another select to get the 2 eqs among the list
-	    let k2 = 0;
-	    if (k < state.length()-1) {
-		k2 = k + 1;
-	    }
-	    const hash2 = state.hash(k2);
-	    rmetotalmixroom.display(eRmeTotalMixRoom, hash, hash2);
-	}
+        const hash = state.hash(k);
+        const name = state.name(k);
+        const convert = panel.querySelector('#convert' + k);
+        const eApo = convert.querySelector('#APO');
+        const eAUPreset = convert.querySelector('#AUPreset');
+        const eRmeTotalMixChannel = convert.querySelector('#Rme-TotalMix-Channel');
+        const eRmeTotalMixRoom = convert.querySelector('#Rme-TotalMix-Room');
+        // need some polymorphism
+        if (method == 'apo') {
+            apo.display(name, eApo, hash);
+        } else if (method == 'aupreset') {
+            aupreset.display(name, eAUPreset, hash);
+        } else if (method == 'rmetmeq') {
+            rmetotalmixchannel.display(name, eRmeTotalMixChannel, hash);
+        } else if (method == 'rmetmreq') {
+            // would be better with another select to get the 2 eqs among the list
+            let k2 = 0;
+            if (k < state.length() - 1) {
+                k2 = k + 1;
+            }
+            const hash2 = state.hash(k2);
+            rmetotalmixroom.display('roomeq.txt', eRmeTotalMixRoom, hash, hash2);
+        }
     }
     tabsAddEvents(panel);
 }
@@ -749,7 +738,6 @@ async function convertState(method) {
 // ----------------------------------------------------------------------
 
 window.onload = () => {
-
     if (window.trustedTypes && window.trustedTypes.createPolicy && !window.trustedTypes.defaultPolicy) {
         window.trustedTypes.createPolicy('default', {
             createHTML: (string) => string,
@@ -777,10 +765,10 @@ window.onload = () => {
                 if (eq.valid()) {
                     state.setItems(eq);
                     contentMsg += '<li> ok:&nbsp;' + eq.name + '</li>';
+                } else {
+                    contentMsg += '<li> ko: &nbsp;' + eq.name + ' (' + response.message + ')</li>';
+                    error = true;
                 }
-            } else {
-                contentMsg += '<li> ko: &nbsp;' + eq.name + ' (' + response.message + ')</li>';
-                error = true;
             }
         }
         contentMsg += '</ol>';
@@ -792,14 +780,13 @@ window.onload = () => {
             await plotState();
             show(stepConvert);
         }
-    }
+    };
 
     formConvertSubmit.onclick = async () => {
-	await convertState(formConvertSelect.value);
-    }
+        await convertState(formConvertSelect.value);
+    };
 
-    document.querySelectorAll('.panel').forEach( (panel) => {
-	tabsAddEvents(panel);
+    document.querySelectorAll('.panel').forEach((panel) => {
+        tabsAddEvents(panel);
     });
-
-}
+};

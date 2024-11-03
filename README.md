@@ -69,11 +69,23 @@ You can then import the eq in TotalMix.
 
 ## In developement mode
 
+Start the backend:
 ```
 export EQCONVERTER_ENV="dev"
 python3 ./backend.py &
+```
+and then a reverse proxy for the frontend, either
+```
 python3 ./scripts/debug_server.py &
 ```
+or
+```
+mkdir -p logs
+nginx -p `pwd` -c ./etc/nginx-dev.conf
+```
+
+Point your browser to `http://0.0.0.0:8000/docs` for the swagger documentation and to `http://127.0.01:7999/` for the main page.
+
 
 ## In production
 

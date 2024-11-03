@@ -15,7 +15,7 @@ sudo tar zxvf /home/$USER/deploy/frontend.tgz -C "$WWW"
 sudo chown -R $USER:$USER "$WWW"
 
 # nginx conf
-sudo cp etc/nginx.conf /etc/nginx/sites-available/spinorama-eqconverter
+sudo cp etc/nginx-prod.conf /etc/nginx/sites-available/spinorama-eqconverter
 status=$(sudo nginx -t)
 if test -z "$status"; then
     echo "OK after checking nginx config!"

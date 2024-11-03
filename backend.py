@@ -7,7 +7,7 @@ import os
 import sys
 
 import sqlite3
-from fastapi import FastAPI, Depends, File, UploadFile, HTTPException
+from fastapi import FastAPI, Depends, UploadFile, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
@@ -280,36 +280,60 @@ def storeEQ(filename: str, buffer: bytes) -> tuple[bool, str]:
 
 
 @backend.post(f"/{API_VERSION}/eq/upload", tags=["EQ"])
-async def upload_eq(file: UploadFile = File(...)):
-    hash_or_msg: str = ""
-    try:
-        buffer = await file.read()
-        if not buffer or len(buffer) == 0:
-            return {
-                "message": "There was an error parsing the file: buffer looks empty",
-                "hash": None,
+async def upload_eq(files: list[UploadFile]):
+    content = []
+    for file in files:
+        hash_or_msg: str = ""
+        try:
+            buffer = await file.read()
+            if not buffer or len(buffer) == 0:
+                content.append(
+                    {
+                        "status": "failed",
+                        "message": "There was an error parsing the file: buffer looks empty",
+                        "hash": None,
+                    }
+                )
+                continue
+            if file.filename is None:
+                content.append(
+                    {
+                        "status": "failed",
+                        "message": "There was an error with the name of the file",
+                        "hash": None,
+                    }
+                )
+                continue
+            success, hash_or_msg = storeEQ(file.filename, buffer)
+            if not success:
+                content.append(
+                    {
+                        "status": "failed",
+                        "message": hash_or_msg,
+                        "hash": None,
+                    }
+                )
+                continue
+        except Exception as e:
+            content.append(
+                {
+                    "status": "failed",
+                    "message": "There was an error uploading the file {}".format(
+                        e
+                    ),
+                    "hash": None,
+                }
+            )
+            continue
+        await file.close()
+        content.append(
+            {
+                "status": "ok",
+                "name": file.filename,
+                "hash": hash_or_msg,
             }
-        if file.filename is None:
-            return {
-                "message": "There was an error with the name of the file",
-                "hash": None,
-            }
-        success, hash_or_msg = storeEQ(file.filename, buffer)
-        if not success:
-            return {
-                "message": hash_or_msg,
-                "hash": None,
-            }
-    except Exception as e:
-        return {
-            "message": "There was an error uploading the file {}".format(e),
-            "hash": None,
-        }
-    await file.close()
-    return {
-        "message": f"Successfuly uploaded {file.filename}",
-        "hash": hash_or_msg,
-    }
+        )
+    return content
 
 
 @backend.get(f"/{API_VERSION}/eqs", tags=["EQ"])
@@ -353,7 +377,9 @@ async def get_eq_rme_totalmix_room(hash_left: str, hash_right: str):
     _, iir_right = db_get_eq(hash_right)
     success, content = iir2rme_totalmix_room(iir_left, iir_right)
     if not success:
-        raise HTTPException(status_code=500, detail='{} {}'.format(iir_left, iir_right))
+        raise HTTPException(
+            status_code=500, detail="{} {}".format(iir_left, iir_right)
+        )
     encoded = jsonable_encoder(content)
     return JSONResponse(content=encoded)
 

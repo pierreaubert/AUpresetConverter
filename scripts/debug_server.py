@@ -4,30 +4,50 @@ import sys
 import http.server
 import http.client
 
-TARGET_SERVER='0.0.0.0'
-TARGET_PORT=8000
+TARGET_SERVER = "0.0.0.0"
+TARGET_PORT = 8000
+
 
 class ProxyHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self):
-        self.handle_request('GET')
+        self.handle_request("GET")
 
     def do_POST(self):
-        self.handle_request('POST')
+        self.handle_request("POST")
 
     def do_PUT(self):
-        self.handle_request('PUT')
+        self.handle_request("PUT")
 
     def do_DELETE(self):
-        self.handle_request('DELETE')
+        self.handle_request("DELETE")
 
     def do_HEAD(self):
-        self.handle_request('HEAD')
+        self.handle_request("HEAD")
 
     def proxy_request(self, method):
         # Open a connection to the target server
         conn = http.client.HTTPConnection(TARGET_SERVER, TARGET_PORT)
         # Send the original request to the target server with all headers
-        conn.request(method, self.path, headers=self.headers)
+        headers = {}
+        for header, value in self.headers.items():
+            if header in (
+                "Content-Length",
+                "Content-Type",
+                "Accept",
+                "Host",
+                "Accept-Encoding",
+            ):
+                headers[header] = value
+        if method != "POST":
+            conn.request(method, self.path, headers=headers)
+        else:
+            data = self.rfile.read(int(headers["Content-Length"]))
+            conn.putrequest(method, self.path)
+            for k, v in headers.items():
+                conn.putheader(k, v)
+            conn.endheaders()
+            conn.send(data)
+
         # Get the response from the target server
         response = conn.getresponse()
         # Send the target server's response back to the client
@@ -45,18 +65,18 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
     def read_file(self, path):
         try:
             filename = path[1:]
-            if path == '/':
-                filename = 'index.html'
+            if path == "/":
+                filename = "index.html"
             with open(filename, "r") as fd:
-                text = fd.read().encode(encoding='utf-8')
+                text = fd.read().encode(encoding="utf-8")
                 self.send_response(200)
-                suffix='html'
-                if len(filename)>5:
-                    if filename[-3:] == 'xml':
-                        suffix = 'xml'
-                    elif filename[-2:] == 'js':
-                        suffix = 'javascript'
-                self.send_header('Content-type', 'text/{}'.format(suffix))
+                suffix = "html"
+                if len(filename) > 5:
+                    if filename[-3:] == "xml":
+                        suffix = "xml"
+                    elif filename[-2:] == "js":
+                        suffix = "javascript"
+                self.send_header("Content-type", "text/{}".format(suffix))
                 self.end_headers()
                 self.flush_headers()
                 # Send the html message
@@ -67,11 +87,10 @@ class ProxyHandler(http.server.BaseHTTPRequestHandler):
 
     def handle_request(self, method):
         path = self.path
-        if path[0:3] == '/v1':
+        if path[0:3] == "/v1":
             self.proxy_request(method)
         else:
             self.read_file(path)
-
 
 
 if __name__ == "__main__":

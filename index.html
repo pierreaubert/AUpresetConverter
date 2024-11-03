@@ -1,151 +1,109 @@
 <!DOCTYPE html>
 <html data-theme="light" lang="en">
-<head>
+  <head>
     <title>Manage EQ files</title>
     <meta content="text/html;charset=utf-8" http-equiv="content-type">
     <meta content="width=device-width, initial-scale=1" name="viewport">
 
     <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <link href="https://spinorama.org/css/bulma-1.0.1.min.css" rel="stylesheet">
+    <style>
+     .is-active {
+       display: initial;
+     }
+     .hidden {
+       display: none;
+     }
+     .graph {
+       width: max(400px, 100%);
+     }
+     .card-min {
+       min-block-size: min(340px, 60%);
+       width: max(340px, 25%);
+     }
+    </style>
 
-</head>
-<body>
+  </head>
+  <body>
 
-  <div class="includes" data-name="assets/symbols" data-ext="xml">Loading...</div>
-  <div class="includes" data-name="assets/menu" data-ext="html">Loading...</div>
+    <div class="includes" data-name="assets/symbols" data-ext="xml">Loading...</div>
+    <div class="includes" data-name="assets/menu" data-ext="html">Loading...</div>
 
-    <div id="stepSelect" class="section">
-      <div class="content">
-	<h1>Pick an EQ file</h1>
-      </div>
-      <form enctype="multipart/form-data" id="uploadEQ" method="post">
-	<div class="field">
-	  <label class="label">From a local file</label>
-	  <div class="control">
-	    <div class="file is-boxed has-name">
-              <label class="file-label">
-		<input accept="plain/*" class="file-input" multiple name="file" type="file">
-		<span class="file-cta">
-		  <span class="file-icon">
-		    <i class="fas fa-upload"></i>
-		  </span>
-		  <span class="file-label">… </span>
-		</span>
-		<span class="file-name"></span>
-              </label>
+    <div class="section">
+      <nav id="stepSelect" class="panel">
+	<p class="panel-heading">Pick an EQ file</p>
+	<p class="panel-tabs">
+	  <a class="is-active" id="tabUpload" data-target="blockUpload">Upload</a>
+	  <a id="tabSpin" data-target="blockSpin">From speaker database</a>
+	</p>
+	<div class="panel-block is-active" id='blockUpload'>
+	  <form enctype="multipart/form-data" id="uploadEQ" method="post">
+	    <div class="field">
+	      <div class="control">
+		<div class="file is-boxed">
+		  <label class="file-label">
+		    <input accept="plain/*" class="file-input" id="file" name="file" type="file" multiple>
+		    <span class="file-cta">
+		      <span class="file-label"> Choose a file… </span>
+		    </span>
+		  </label>
+		</div>
+	      </div>
 	    </div>
-	  </div>
+	  </form>
+	  <div class="content" id="file-name"></div>
 	</div>
-      </form>
-      <form id="getEQFromSpinorama" method="get">
-	<div class="field">
-	  <label class="label">From speaker database</label>
-	  <div class="control">
-	    <select id="selectSpeakers">
-	    </select>
-	  </div>
-	  <div class="control">
-	    <select id="selectSpeakerEQ" hidden>
-	    </select>
-	  </div>
+	<div class="panel-block" id="blockSpin" hidden>
+	  <form id="getEQFromSpinorama" method="get">
+	    <div class="field">
+	      <label class="label">From speaker database</label>
+	      <div class="control">
+		<select id="selectSpeakers">
+		</select>
+	      </div>
+	      <div class="control">
+		<select id="selectSpeakerEQ" hidden>
+		</select>
+	      </div>
+	    </div>
+	  </form>
 	</div>
-      </form>
-      <div id="plots" hidden>
-	<div id="plotIIR">
-	</div>
-	<div id="plotPEQ">
-	</div>
-      </div>
+      </nav>
     </div>
+
+    <div class="section" id="plots" hidden></div>
 
     <div id="stepConvert" class="section" hidden>
-      <div class="content">
-	<h1>Convert</h1>
-      </div>
-      <div class="box" id="convertEQ">
-	<label for="hash"></label>
-	<input id="hash" value="" hidden>
-	<div class="field">
-	  <label class="label">2. Select format and convert:</label>
-	</div>
-	<div class="field is-grouped">
-	  <div class="control">
-	    <div class="select">
-	      <label for="selectFormat"></label>
-	      <select id="selectFormat" name="selectFormat">
-		<option value="AUPreset">AUPreset</option>
-		<option value="APO">APO</option>
-<!--
-		<option value="Roon">Roon</option>
--->
-		<option value="RMEtmeq">RME TotalMix Chanel EQ</option>
-		<option value="RMEtmreq">RME TotalMix Room EQ</option>
-	      </select>
-	    </div>
-	  </div>
-	  <div class="control">
-	    <button class="button is-link" id="submitButton">Convert</button>
-	  </div>
-	</div>
-      </div>
-      <div id="displayEQ" hidden>
-	<div class="box" id="displayEQ-APO">
-	  <div class="content">
+      <nav class="panel is-primary" id="convertEQ">
+	<p class="panel-heading">Convert</p>
+	<a class="panel-block">
+	  <div class="box">
 	    <div class="field">
-	      <label class="label">EQ APO format</label>
+	      <label class="label">Select format and convert:</label>
 	    </div>
-	    <code>
-	      <p class="is-family-monospace">
-	      </p>
-	    </code>
-	    <div class="control">
-	      <button class="button is-link" id="downloadAPO">Download</button>
-	    </div>
-	  </div>
-	</div>
-	<div class="box" id="displayEQ-AUPreset">
-	  <div class="content">
-	    <div class="field">
-	      <label class="label">EQ AUPreset format</label>
-	    </div>
-	    <code>
-	      <p class="is-family-monospace">
-	      </p>
-	    </code>
-	    <div class="control">
-	      <button class="button is-link" id="downloadAUPreset">Download</button>
+	    <div class="field has-addons">
+	      <div class="control">
+		<div class="select">
+		  <label for="selectFormat"></label>
+		  <select id="selectFormat" name="selectFormat">
+		    <option value="aupreset">AUPreset</option>
+		    <option value="apo">APO</option>
+		    <option value="rmetmeq">Rme TotalMix Chanel EQ</option>
+		    <option value="rmetmreq">Rme TotalMix Room EQ</option>
+		  </select>
+		</div>
+	      </div>
+	      <div class="control">
+		<button class="button is-link" id="submitButton">Convert</button>
+	      </div>
 	    </div>
 	  </div>
-	</div>
-	<div class="box" id="displayEQ-RME-TotalMix-Channel">
-	  <div class="content">
-	    <div class="field">
-	      <label class="label">EQ TotalMix Channel EQ format</label>
-	    </div>
-	    <code>
-	      <p class="is-family-monospace">
-	      </p>
-	    </code>
-	    <div class="control">
-	      <button class="button is-link" id="downloadRMEtmeq">Download</button>
-	    </div>
-	  </div>
-	</div>
-	<div class="box" id="displayEQ-RME-TotalMix-Room">
-	  <div class="content">
-	    <div class="field">
-	      <label class="label">EQ TotalMix Room EQ format</label>
-	    </div>
-	    <code>
-	      <p class="is-family-monospace">
-	      </p>
-	    </code>
-	    <div class="control">
-	      <button class="button is-link" id="downloadRMEtmreq">Download</button>
-	    </div>
-	  </div>
-      </div>
+	</a>
+	<p class="panel-tabs" id="tabs"></p>
+      </nav>
     </div>
+
     <script src="index.js" type="module"></script>
-</body>
+
+  </body>
 </html>

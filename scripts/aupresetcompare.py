@@ -68,7 +68,7 @@ def main():
     if len(lines1) != len(lines2):
         print("error: lens are diff!")
 
-    for i, (b1, b2) in enumerate(zip(bigendian1, bigendian2)):
+    for i, (b1, b2) in enumerate(zip(bigendian1, bigendian2, strict=True)):
         if b1 != b2:
             print("{} != {} {}".format(i, b1, b2))
 

@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# remove warnings for constants (coming for macOS)
+# ruff: noqa: N816
+
 import base64
 import pathlib
 from string import Template
@@ -327,7 +330,7 @@ def type2rme(t: str, pos: int) -> float:
             return 2.0
         elif pos == 3:
             return 3.0
-    elif t == "LS":
+    elif t == "LS":  # noqa: SIM102
         if pos == 3:
             return 2.0
     return -1.0

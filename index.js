@@ -68,7 +68,7 @@ class EQState {
             this._hash = hash;
             this._name = name;
         } else {
-            console.log('Length of hash is ' + hash.lenght);
+            console.log('Length of hash is ' + hash.length);
         }
     }
 
@@ -107,11 +107,6 @@ class State {
     setItems(item) {
         this._items.push(item);
     }
-
-    getItems() {
-        return this._items;
-    }
-
     reset() {
         this._items = [];
     }
@@ -137,8 +132,7 @@ function importIncludes() {
     const loadComponent = async (c) => {
         const { name, ext } = c.dataset;
         const response = await fetch(`${name}.${ext}`);
-        const html = await response.text();
-        c.innerHTML = html;
+        c.innerHTML = await response.text();
     };
     [...components].forEach(loadComponent);
 }
@@ -231,8 +225,7 @@ async function uploadFiles(form) {
     };
 
     const response = await fetch(url, fetchOptions);
-    const text = await response.json();
-    return text;
+    return await response.json();
 }
 
 async function setSpeakerEQ(speakerName) {
@@ -255,18 +248,18 @@ async function setSpeakerEQ(speakerName) {
             let hash = '';
             // must be a filter function somewhere
             data.forEach((v) => {
-                if (v['name'] == selectedSpeakerEQ) {
+                if (v['name'] === selectedSpeakerEQ) {
                     hash = v['hash'];
                 }
             });
             const eq = new EQState(hash, speakerName + ' - ' + selectedSpeakerEQ);
             state.reset();
             state.setItems(eq);
-            plotState();
+            await plotState();
             show(stepConvert);
         } else {
             hide(plots);
-            convertCleanup();
+            await convertCleanup();
         }
     };
     return true;
@@ -284,7 +277,7 @@ async function loadFromSpinorama() {
     selectSpeakers.onchange = async () => {
         const selectedSpeaker = selectSpeakers.value;
         if (selectedSpeaker !== '') {
-            setSpeakerEQ(selectedSpeaker);
+            await setSpeakerEQ(selectedSpeaker);
             hide(plots);
             hide(stepConvert);
         }
@@ -471,10 +464,10 @@ const rmetotalmixroom = new RmeTotalMixRoom();
 
 function screen2wh() {
     const ww = window.innerWidth;
-    const wh = window.innerHeight;
+    // const wh = window.innerHeight;
     const margin = 0;
-    let w = ww;
-    let h = wh;
+    let w;
+    let h;
     w = Math.min(Math.max(300, ww - margin), 800);
     h = w / 2;
     return [w, h];
@@ -602,7 +595,7 @@ async function plotState() {
         let classActive = '';
         let active = '';
         let hidden = 'hidden';
-        if (k == 0) {
+        if (k === 0) {
             active = ' is-active';
             classActive = ' class="is-active"';
             hidden = '';
@@ -661,7 +654,7 @@ async function convertState(method) {
 
     for (let k = 0; k < state.length(); k++) {
         let classActive = '';
-        if (k == 0) {
+        if (k === 0) {
             classActive = ' class="is-active"';
         }
         contentTabs += `<a${classActive} id="name${k}" data-target="convert${k}">${state.name(k)}</a>`;
@@ -722,13 +715,13 @@ async function convertState(method) {
         const eRmeTotalMixChannel = convert.querySelector('#Rme-TotalMix-Channel');
         const eRmeTotalMixRoom = convert.querySelector('#Rme-TotalMix-Room');
         // need some polymorphism
-        if (method == 'apo') {
-            apo.display(name, eApo, hash);
-        } else if (method == 'aupreset') {
-            aupreset.display(name, eAUPreset, hash);
-        } else if (method == 'rmetmeq') {
-            rmetotalmixchannel.display(name, eRmeTotalMixChannel, hash);
-        } else if (method == 'rmetmreq') {
+        if (method === 'apo') {
+            await apo.display(name, eApo, hash);
+        } else if (method === 'aupreset') {
+            await aupreset.display(name, eAUPreset, hash);
+        } else if (method === 'rmetmeq') {
+            await rmetotalmixchannel.display(name, eRmeTotalMixChannel, hash);
+        } else if (method === 'rmetmreq') {
 	    let l = 0;
 	    let r = 1;
 	    const optionsLeft = stepConvert.querySelector('#selectLeftChannel').options;
@@ -743,7 +736,7 @@ async function convertState(method) {
 	    }
             const hashL = state.hash(l);
             const hashR = state.hash(r);
-            rmetotalmixroom.display('roomeq.txt', eRmeTotalMixRoom, hashL, hashR);
+            await rmetotalmixroom.display('roomeq.txt', eRmeTotalMixRoom, hashL, hashR);
         }
     }
     tabsAddEvents(panel);
@@ -791,7 +784,7 @@ window.onload = () => {
         formUploadFilename.innerHTML = contentMsg;
         if (error) {
             hide(plots);
-            convertCleanup();
+            await convertCleanup();
         } else {
             await plotState();
 	    show(stepConvert);
@@ -806,25 +799,25 @@ window.onload = () => {
 	    const selectLeftChannel = leftChannel.querySelector('#selectLeftChannel');
 	    const selectRightChannel = rightChannel.querySelector('#selectRightChannel');
 	    for( let k=0 ; k<state.length() ; k++ ) {
-		const fragment = new DocumentFragment();
-		const option = document.createElement('option');
-		option.setAttribute('value', k);
-		option.innerHTML = state.name(k);
-		const option2 = option.cloneNode(true);
-		if (k === 0 ) {
-		    selectRightChannel.appendChild(option);
-		    option2.setAttribute('selected', 'true');
-		    selectLeftChannel.appendChild(option2);
-		} else if (k === 1 ) {
-		    selectLeftChannel.appendChild(option);
-		    option2.setAttribute('selected', 'true');
-		    selectRightChannel.appendChild(option2);
-		} else {
-		    selectLeftChannel.appendChild(option);
-		    selectRightChannel.appendChild(option2);
-		}
-	    }
-	    show(leftChannel);
+            const option = document.createElement('option');
+            option.setAttribute('value', k.toString());
+            option.innerHTML = state.name(k);
+            const option2 = option.cloneNode(true);
+            if (k === 0 ) {
+                selectRightChannel.appendChild(option);
+                option2.setAttribute('selected', 'true');
+                selectLeftChannel.appendChild(option2);
+            } else if (k === 1 ) {
+                selectLeftChannel.appendChild(option);
+                option2.setAttribute('selected', 'true');
+                selectRightChannel.appendChild(option2);
+            } else {
+                selectLeftChannel.appendChild(option);
+                selectRightChannel.appendChild(option2);
+            }
+        }
+
+        show(leftChannel);
 	    show(rightChannel);
 	} else {
 	    hide(leftChannel);

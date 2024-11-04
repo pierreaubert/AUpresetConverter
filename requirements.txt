@@ -3,6 +3,8 @@ defusedxml
 pandas
 numpy
 plotly
+starlette
+pydantic
 fastapi[standard]
 uvicorn>=0.32.0
 sqlite4

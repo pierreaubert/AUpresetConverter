@@ -56,14 +56,15 @@
 	<div class="panel-block" id="blockSpin" hidden>
 	  <form id="getEQFromSpinorama" method="get">
 	    <div class="field">
-	      <label class="label">From speaker database</label>
+	      <label for="selectSpeakers" class="label">From speaker database</label>
 	      <div class="control">
-		<select id="selectSpeakers">
-		</select>
+		<select id="selectSpeakers"></select>
 	      </div>
+	    </div>
+	    <div class="field">
+	      <label for="selectSpeakerEQ" class="label">Pick an EQ</label>
 	      <div class="control">
-		<select id="selectSpeakerEQ" hidden>
-		</select>
+		<select id="selectSpeakerEQ" hidden></select>
 	      </div>
 	    </div>
 	  </form>
@@ -79,8 +80,8 @@
 	<p class="panel-block">
 	  <div class="box">
 	    <div class="field">
+	      <label class="label">Select format and convert:</label>
 	      <div class="control">
-		<label class="label">Select format and convert:</label>
 		<div class="select">
 		  <label for="selectFormat"></label>
 		  <select id="selectFormat" name="selectFormat">
@@ -93,8 +94,8 @@
 	      </div>
 	    </div>
 	    <div class="field" id="leftChannel" hidden>
+	      <label class="label">Select EQ for left channel:</label>
 	      <div class="control">
-		<label class="label">Select EQ for left channel:</label>
 		<div class="select">
 		  <label for="selectLeftChannel"></label>
 		  <select id="selectLeftChannel" name="selectLeftChannel">
@@ -103,8 +104,8 @@
 	      </div>
 	    </div>
 	    <div class="field" id="rightChannel" hidden>
+	      <label class="label">Select EQ for right channel:</label>
 	      <div class="control">
-		<label class="label">Select EQ for right channel:</label>
 		<div class="select">
 		  <label for="selectRightChannel"></label>
 		  <select id="selectRightChannel" name="selectRightChannel">
@@ -118,7 +119,6 @@
 	      </div>
 	    </div>
 	  </div>
-	</p>
 	<p class="panel-tabs" id="tabs"></p>
       </nav>
     </div>

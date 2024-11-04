@@ -28,7 +28,7 @@ def peq_preamp_gain_conservative(peq: Peq) -> float:
     individual = 0.0
     if len(peq) == 0:
         return 0.0
-    for _w, iir in peq:
+    for _, iir in peq:
         individual = max(
             individual,
             0.0,  # if negative doesn't count
@@ -54,7 +54,7 @@ def peq_preamp_gain(peq: Peq) -> float:
 
 
 def peq_print(peq: Peq) -> None:
-    for _i, iir in enumerate(peq):
+    for iir in peq:
         if iir[0] != 0:
             print(iir[1])
 

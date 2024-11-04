@@ -4,24 +4,24 @@ import sys
 import http.server
 import http.client
 
-TARGET_SERVER = "0.0.0.0"
+TARGET_SERVER = "127.0.0.1"
 TARGET_PORT = 8000
 
 
 class ProxyHandler(http.server.BaseHTTPRequestHandler):
-    def do_GET(self):
+    def do_GET(self):  # noqa: N802
         self.handle_request("GET")
 
-    def do_POST(self):
+    def do_POST(self):  # noqa: N802
         self.handle_request("POST")
 
-    def do_PUT(self):
+    def do_PUT(self):  # noqa: N802
         self.handle_request("PUT")
 
-    def do_DELETE(self):
+    def do_DELETE(self):  # noqa: N802
         self.handle_request("DELETE")
 
-    def do_HEAD(self):
+    def do_HEAD(self):  # noqa: N802
         self.handle_request("HEAD")
 
     def proxy_request(self, method):

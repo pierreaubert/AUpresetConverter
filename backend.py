@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+import ast
 import hashlib
 import json
 import logging
 import math
+import re
 import os
 import sys
+from typing_extensions import Annotated
 
 import sqlite3
 from fastapi import FastAPI, Depends, UploadFile, HTTPException
@@ -12,7 +15,7 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
 import uvicorn
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, StringConstraints
 import numpy as np
 
 from iir.filter_iir import Biquad
@@ -25,7 +28,6 @@ from converter import (
     iir2rme_totalmix_channel,
     iir2rme_totalmix_room,
 )
-
 
 # ----------------------------------------------------------------------
 # constants
@@ -49,22 +51,30 @@ FASTAPI_DEBUG = False
 SERVER = "https://eqconverter.spinorama.org/{}".format(API_VERSION)
 
 if ENV == "dev":
-    SERVER = "http://0.0.0.0:8000/{}".format(API_VERSION)
+    SERVER = "http://127.0.0.1:8000/{}".format(API_VERSION)
     SPIN = "/Users/pierrre/src/spinorama/docs/json"
     METADATA = f"{SPIN}/metadata.json"
     EQDATA = f"{SPIN}/eqdata.json"
     FASTAPI_DEBUG = True
 
 
-KNOWN_FORMATS = set(["txt", "text", "aupreset"])
+KNOWN_FORMATS = {"txt", "text", "aupreset"}
 
 # ----------------------------------------------------------------------
 # data model
 # ----------------------------------------------------------------------
 
+HashStr = Annotated[
+    str, StringConstraints(min_length=128, max_length=128, pattern=r"[a-z0-9]+")
+]
+
+def check_hash(input: str) -> bool:
+    if len(input) != 128:
+        return False
+    return re.search("^[a-z0-9]+$", input)
 
 class EQ(BaseModel):
-    hash: str = Field(min_length=128, max_length=128)
+    eq_hash: HashStr
     name: str = Field(min_length=5, max_length=64)
     peq: str = Field(max_length=4096)
 
@@ -80,7 +90,7 @@ def create_table():
     cursor.execute(
         """
         CREATE TABLE IF NOT EXISTS eqs (
-        hash TEXT PRIMARY KEY,
+        eq_hash TEXT PRIMARY KEY,
         name TEXT NOT NULL,
         peq  TEXT NOT NULL
         )
@@ -94,8 +104,8 @@ def create_eq(eq: EQ) -> bool:
     connection = create_connection()
     cursor = connection.cursor()
     cursor.execute(
-        "INSERT INTO eqs (hash, name, peq) VALUES (?, ?, ?) ON CONFLICT (hash) DO UPDATE SET name=excluded.name",
-        (eq.hash, eq.name, eq.peq),
+        "INSERT INTO eqs (eq_hash, name, peq) VALUES (?, ?, ?) ON CONFLICT (eq_hash) DO UPDATE SET name=excluded.name",
+        (eq.eq_hash, eq.name, eq.peq),
     )
     connection.commit()
     connection.close()
@@ -111,25 +121,26 @@ def db_get_eqs() -> list[tuple[str, str]]:
     return results
 
 
-def db_get_eq(hash: str) -> tuple[str, IIR]:
+def db_get_eq(eq_hash: str) -> tuple[str, IIR]:
     connection = create_connection()
     cursor = connection.cursor()
+    if not check_hash(eq_hash):
+        return "error", []
     results = cursor.execute(
-        f"SELECT name, peq from eqs where hash='{hash}';"
+        "SELECT name, peq from eqs where eq_hash='{}';".format(eq_hash) # noqa: S608
     ).fetchone()
     connection.commit()
     connection.close()
     if not results:
         return "error", []
     name, serialized = results
-    iir = eval(serialized)
+    iir = ast.literal_eval(serialized)
     return name, iir
 
 
 # ----------------------------------------------------------------------
 # load various data
 # ----------------------------------------------------------------------
-
 
 def load_metadata():
     if not os.path.exists(METADATA):
@@ -210,32 +221,28 @@ async def get_speaker_eqdata(
     if "eqs" in content:
         for key in content["eqs"]:
             eq = content["eqs"][key]
-            lines = []
-            lines.append(
-                "{} {}".format(
-                    eq["display_name"],
-                    eq["filename"],
-                )
-            )
-            lines.append("\n")
-            lines.append("Preamp gain: {:+3.1f}".format(eq["preamp_gain"]))
+            lines = [
+                "{} {}".format(eq["display_name"], eq["filename"]),
+                "\n",
+                "Preamp gain: {:+3.1f}".format(float(eq["preamp_gain"])),
+            ]
             for i, iir in enumerate(eq["peq"]):
                 iir_type = Biquad.type2name[iir["type"]][1]
                 iir_freq = int(iir["freq"])
-                iir_Q = iir["Q"]
-                iir_dbGain = iir["dbGain"]
+                iir_q = float(iir["Q"])
+                iir_gain = float(iir["dbGain"])
                 lines.append(
                     "Filter {:2d} ON {:s} Fc {:d} Hz Gain {:4.1f} dB Q {:4.2f}".format(
                         i,
                         iir_type,
                         iir_freq,
-                        iir_dbGain,
-                        iir_Q,
+                        iir_gain,
+                        iir_q,
                     )
                 )
             lines.append("\n")
             buffer = "\n".join(lines).encode(encoding="utf-8")
-            success, hash_or_msg = storeEQ(speaker_name, buffer)
+            success, hash_or_msg = store_eq(speaker_name, buffer)
             if not success:
                 raise HTTPException(status_code=500, detail=hash_or_msg)
             eq["hash"] = hash_or_msg
@@ -255,7 +262,7 @@ def eq2hash(buffer: bytes) -> str:
     return hashlib.blake2b(buffer).hexdigest()
 
 
-def storeEQ(filename: str, buffer: bytes) -> tuple[bool, str]:
+def store_eq(filename: str, buffer: bytes) -> tuple[bool, str]:
     input = buffer.decode("utf-8")
     if not input or len(input) == 0:
         return False, "There was an error parsing the file: buffer decoding"
@@ -265,18 +272,18 @@ def storeEQ(filename: str, buffer: bytes) -> tuple[bool, str]:
     success, iir = lines2iir(lines)
     if not success:
         return False, "There was an error parsing the file as an EQ"
-    hash = eq2hash(buffer)
-    if not hash:
+    eq_hash = eq2hash(buffer)
+    if not eq_hash:
         return (
             False,
             "There was an error computing the hash failed",
         )
     name = filename if filename else "eq"
-    eq = EQ(hash=hash, name=name, peq=str(iir))
+    eq = EQ(eq_hash=eq_hash, name=name, peq=str(iir))
     success = create_eq(eq)
     if not success:
         return False, "Failed to save peq"
-    return True, hash
+    return True, eq_hash
 
 
 @backend.post(f"/{API_VERSION}/eq/upload", tags=["EQ"])
@@ -304,7 +311,7 @@ async def upload_eq(files: list[UploadFile]):
                     }
                 )
                 continue
-            success, hash_or_msg = storeEQ(file.filename, buffer)
+            success, hash_or_msg = store_eq(file.filename, buffer)
             if not success:
                 content.append(
                     {
@@ -344,16 +351,16 @@ async def get_eqs():
 
 
 @backend.get(f"/{API_VERSION}/eq/target/aupreset", tags=["EQ"])
-async def get_eq_aupreset(hash: str):
-    name, iir = db_get_eq(hash)
+async def get_eq_aupreset(eq_hash: str):
+    name, iir = db_get_eq(eq_hash)
     content = iir2aupreset(iir, name)
     encoded = jsonable_encoder(content)
     return JSONResponse(content=encoded)
 
 
 @backend.get(f"/{API_VERSION}/eq/target/apo", tags=["EQ"])
-async def get_eq_apo(hash: str):
-    name, iir = db_get_eq(hash)
+async def get_eq_apo(eq_hash: str):
+    name, iir = db_get_eq(eq_hash)
     peq = iir2peq(iir)
     content = peq_format_apo(comment=name, peq=peq)
     encoded = jsonable_encoder(content)
@@ -361,8 +368,8 @@ async def get_eq_apo(hash: str):
 
 
 @backend.get(f"/{API_VERSION}/eq/target/rme_totalmix_channel", tags=["EQ"])
-async def get_eq_rme_totalmix_channel(hash: str):
-    _, iir = db_get_eq(hash)
+async def get_eq_rme_totalmix_channel(eq_hash: str):
+    _, iir = db_get_eq(eq_hash)
     success, content = iir2rme_totalmix_channel(iir)
     if not success:
         print(content)
@@ -372,9 +379,9 @@ async def get_eq_rme_totalmix_channel(hash: str):
 
 
 @backend.get(f"/{API_VERSION}/eq/target/rme_totalmix_room", tags=["EQ"])
-async def get_eq_rme_totalmix_room(hash_left: str, hash_right: str):
-    _, iir_left = db_get_eq(hash_left)
-    _, iir_right = db_get_eq(hash_right)
+async def get_eq_rme_totalmix_room(eq_hash_left: str, eq_hash_right: str):
+    _, iir_left = db_get_eq(eq_hash_left)
+    _, iir_right = db_get_eq(eq_hash_right)
     success, content = iir2rme_totalmix_room(iir_left, iir_right)
     if not success:
         raise HTTPException(
@@ -385,8 +392,8 @@ async def get_eq_rme_totalmix_room(hash_left: str, hash_right: str):
 
 
 @backend.get(f"/{API_VERSION}/eq/graph_spl", tags=["EQ"])
-async def get_eq_graph_spl(hash: str):
-    _, iir = db_get_eq(hash)
+async def get_eq_graph_spl(eq_hash: str):
+    _, iir = db_get_eq(eq_hash)
     peq = iir2peq(iir)
     freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 200)
     spl = peq_build(freq, peq)
@@ -396,8 +403,8 @@ async def get_eq_graph_spl(hash: str):
 
 
 @backend.get(f"/{API_VERSION}/eq/graph_spl_details", tags=["EQ"])
-async def get_eq_graph_spl_details(hash: str):
-    _, iir = db_get_eq(hash)
+async def get_eq_graph_spl_details(eq_hash: str):
+    _, iir = db_get_eq(eq_hash)
     peq = iir2peq(iir)
     freq = np.logspace(1 + math.log10(2), 4 + math.log10(2), 200)
     spl = {}
@@ -413,13 +420,13 @@ if __name__ == "__main__":
     if ENV == "dev":
         uvicorn.run(
             "backend:backend",
-            host="0.0.0.0",
+            host="0.0.0.0",  # noqa: S104
             port=8000,
         )
     else:
         uvicorn.run(
             "backend:backend",
-            host="0.0.0.0",
+            host="127.0.0.1",
             port=9999,
             # using a reverse proxy in front
             # ssl_keyfile="/etc/letsencrypt/live/eqcompare.spinorama.org/key.pem",

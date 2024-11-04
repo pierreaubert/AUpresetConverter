@@ -61,6 +61,7 @@ lint.select = ["F", "N", "YTT", "S", "B", "FBT", "EM", "EXE", "G", "Q", "T20", "
 lint.ignore = [
        "PLR",
        "T20",
+       "N999",
 ]
 
 # Allow autofix for all enabled rules (when `--fix`) is provided.

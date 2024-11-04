@@ -77,8 +77,6 @@ ENV/
 MANIFEST
 __pycache__/
 __pypackages__/
-assets
-assets/external/
 build/
 celerybeat-schedule
 celerybeat.pid

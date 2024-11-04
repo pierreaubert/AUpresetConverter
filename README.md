@@ -44,13 +44,13 @@ will copy the AUpreset to the standard output.
 You may want to copy it where most DAW can find it:
 
 ```
-./scripts/rew2aupreset.py -input eq.txt -format aupreset -install
+./eq2eq.py -input eq.txt -format aupreset -install
 ```
 
 you can redirect to a file with the -output flag.
 
 ```
-./scripts/rew2aupreset.py -input eq.txt -output eq.aupreset
+./eq2eq.py -input eq.txt -output eq.aupreset
 ```
 
 will copy the AUpreset where DAWs(1) expect to find them (2).

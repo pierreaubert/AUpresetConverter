@@ -207,6 +207,12 @@ function tabsAddEvents(panel) {
     }
 }
 
+function cleanupPanel(panel) {
+    panel.querySelectorAll('div.panel-block').forEach((node) => {
+        panel.removeChild(node);
+    });
+}
+
 // ----------------------------------------------------------------------
 // backend calls
 // ----------------------------------------------------------------------
@@ -260,7 +266,7 @@ async function setSpeakerEQ(speakerName) {
             show(stepConvert);
         } else {
             hide(plots);
-            hide(stepConvert);
+            convertCleanup();
         }
     };
     return true;
@@ -645,6 +651,11 @@ ${contentBlocks}
 // display the eq in each format for each EQ in the state
 // ----------------------------------------------------------------------
 
+async function convertCleanup() {
+    const panel = stepConvert.querySelector('#convertEQ');
+    cleanupPanel(panel);
+}
+
 async function convertState(method) {
     let contentTabs = '';
 
@@ -662,11 +673,8 @@ async function convertState(method) {
     stepConvert.querySelector('#tabs').innerHTML = contentTabs;
     // remove old blocks if we have some
     const panel = stepConvert.querySelector('#convertEQ');
-    const oldBlocks = panel.querySelectorAll('div.panel-block');
-    oldBlocks.forEach((node) => {
-        panel.removeChild(node);
-    });
-    // add new blocks
+    cleanupPanel(panel);
+     // add new blocks
     for (let k = 0; k < state.length(); k++) {
         const fragment = new DocumentFragment();
         const div = document.createElement('div');
@@ -721,13 +729,21 @@ async function convertState(method) {
         } else if (method == 'rmetmeq') {
             rmetotalmixchannel.display(name, eRmeTotalMixChannel, hash);
         } else if (method == 'rmetmreq') {
-            // would be better with another select to get the 2 eqs among the list
-            let k2 = 0;
-            if (k < state.length() - 1) {
-                k2 = k + 1;
-            }
-            const hash2 = state.hash(k2);
-            rmetotalmixroom.display('roomeq.txt', eRmeTotalMixRoom, hash, hash2);
+	    let l = 0;
+	    let r = 1;
+	    const optionsLeft = stepConvert.querySelector('#selectLeftChannel').options;
+	    const indexLeft = optionsLeft.selectedIndex;
+	    if (indexLeft !== -1 ) {
+		l = parseInt(optionsLeft[indexLeft].value);
+	    }
+	    const optionsRight = stepConvert.querySelector('#selectRightChannel').options;
+	    const indexRight = optionsRight.selectedIndex;
+	    if (indexRight !== -1 ) {
+		r = parseInt(optionsRight[indexRight].value);
+	    }
+            const hashL = state.hash(l);
+            const hashR = state.hash(r);
+            rmetotalmixroom.display('roomeq.txt', eRmeTotalMixRoom, hashL, hashR);
         }
     }
     tabsAddEvents(panel);
@@ -775,15 +791,50 @@ window.onload = () => {
         formUploadFilename.innerHTML = contentMsg;
         if (error) {
             hide(plots);
-            hide(stepConvert);
+            convertCleanup();
         } else {
             await plotState();
-            show(stepConvert);
+	    show(stepConvert);
         }
+    };
+
+    formConvertSelect.onchange = async () => {
+	const value = formConvertSelect.value;
+	const leftChannel = stepConvert.querySelector('#leftChannel');
+	const rightChannel = stepConvert.querySelector('#rightChannel');
+	if ( value === 'rmetmreq' && state.length()>1 ) {
+	    const selectLeftChannel = leftChannel.querySelector('#selectLeftChannel');
+	    const selectRightChannel = rightChannel.querySelector('#selectRightChannel');
+	    for( let k=0 ; k<state.length() ; k++ ) {
+		const fragment = new DocumentFragment();
+		const option = document.createElement('option');
+		option.setAttribute('value', k);
+		option.innerHTML = state.name(k);
+		const option2 = option.cloneNode(true);
+		if (k === 0 ) {
+		    selectRightChannel.appendChild(option);
+		    option2.setAttribute('selected', 'true');
+		    selectLeftChannel.appendChild(option2);
+		} else if (k === 1 ) {
+		    selectLeftChannel.appendChild(option);
+		    option2.setAttribute('selected', 'true');
+		    selectRightChannel.appendChild(option2);
+		} else {
+		    selectLeftChannel.appendChild(option);
+		    selectRightChannel.appendChild(option2);
+		}
+	    }
+	    show(leftChannel);
+	    show(rightChannel);
+	} else {
+	    hide(leftChannel);
+	    hide(rightChannel);
+	}
     };
 
     formConvertSubmit.onclick = async () => {
         await convertState(formConvertSelect.value);
+	show(stepConvert);
     };
 
     document.querySelectorAll('.panel').forEach((panel) => {

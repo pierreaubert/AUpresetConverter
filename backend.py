@@ -207,7 +207,7 @@ async def get_speaker_eqdata(
 ):
     content = eqdata.get(speaker_name, {"error": "Speaker not found"})
     flat = []
-    if "eqs" in content.keys():
+    if "eqs" in content:
         for key in content["eqs"]:
             eq = content["eqs"][key]
             lines = []

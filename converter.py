@@ -362,7 +362,7 @@ def iir2rme_totalmix_channel(iirs: list) -> tuple[STATUS, str]:
     for i, iir in enumerate(iirs):
         rme = type2rme(iir["type"], i + 1)
         if rme == -1:
-            print("skip eq {} type is unknown {}", i, iir["type"])
+            print("skip eq {} type is unknown {}".format(i, iir["type"]))
             continue
         lines.append(
             '        <val e="Band{} Type" v="{:4.2f},"/>'.format(i + 1, rme)

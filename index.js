@@ -340,9 +340,9 @@ function text2code(text) {
 class Format {
     // each format need to support display (the converted format) and download
 
-    async display(fileName, div, hash) {}
+    async display(/*fileName, div, hash*/) {}
 
-    async download(fileName, hash) {}
+    async download(/*fileName, hash*/) {}
 }
 
 function downloadViaData(fileName, returnType, data) {
@@ -358,7 +358,7 @@ function downloadViaData(fileName, returnType, data) {
 class APO extends Format {
     async display(fileName, div, hash) {
         const url = backend + '/eq/target/apo';
-        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const response = await fetch(url + '?eq_hash=' + hash, https_headers);
         const data = await response.json();
         div.querySelector('code').innerHTML = text2code(data);
         div.querySelector('#download').onclick = () => {
@@ -369,7 +369,7 @@ class APO extends Format {
 
     async download(fileName, hash) {
         const url = backend + '/eq/target/apo';
-        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const response = await fetch(url + '?eq_hash=' + hash, https_headers);
         const data = await response.json();
         downloadViaData(fileName, 'plain', data);
     }
@@ -380,7 +380,7 @@ const apo = new APO();
 class AUPreset extends Format {
     async display(fileName, div, hash) {
         const url = backend + '/eq/target/aupreset';
-        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const response = await fetch(url + '?eq_hash=' + hash, https_headers);
         const data = await response.json();
         div.querySelector('code').innerHTML = text2code(data[1]);
         div.querySelector('#download').onclick = () => {
@@ -391,7 +391,7 @@ class AUPreset extends Format {
 
     async download(fileName, hash) {
         const url = backend + '/eq/target/aupreset';
-        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const response = await fetch(url + 'eq_?hash=' + hash, https_headers);
         const data = await response.json();
 
         let aupresetName = fileName;
@@ -407,7 +407,7 @@ const aupreset = new AUPreset();
 class RMETotalMixChannel extends Format {
     async display(fileName, div, hash) {
         const url = backend + '/eq/target/rme_totalmix_channel';
-        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const response = await fetch(url + '?eq_hash=' + hash, https_headers);
         const data = await response.json();
         div.querySelector('code').innerHTML = text2code(data);
         div.querySelector('#download').onclick = () => {
@@ -418,7 +418,7 @@ class RMETotalMixChannel extends Format {
 
     async download(fileName, hash) {
         const url = backend + '/eq/target/rme_totalmix_channel';
-        const response = await fetch(url + '?hash=' + hash, https_headers);
+        const response = await fetch(url + '?eq_hash=' + hash, https_headers);
         const data = await response.json();
 
         let tmeqName = fileName;
@@ -434,7 +434,7 @@ const rmetotalmixchannel = new RMETotalMixChannel();
 class RmeTotalMixRoom extends Format {
     async display(fileName, div, hash0, hash1) {
         const url = backend + '/eq/target/rme_totalmix_room';
-        const response = await fetch(url + '?hash_left=' + hash0 + '&hash_right=' + hash1, https_headers);
+        const response = await fetch(url + '?eq_hash_left=' + hash0 + '&eq_hash_right=' + hash1, https_headers);
         const data = await response.json();
         div.querySelector('code').innerHTML = text2code(data);
         div.querySelector('#download').onclick = () => {
@@ -445,7 +445,7 @@ class RmeTotalMixRoom extends Format {
 
     async download(fileName, hash0, hash1) {
         const url = backend + '/eq/target/rme_totalmix_channel';
-        const response = await fetch(url + '?hash_left=' + hash0 + '&hash_right=' + hash1, https_headers);
+        const response = await fetch(url + '?eq_hash_left=' + hash0 + '&eq_hash_right=' + hash1, https_headers);
         const data = await response.json();
 
         let tmreqName = fileName;
@@ -565,7 +565,7 @@ async function plotlyPEQ(div, hash) {
     if (hash === null || hash.length !== 128) {
         return;
     }
-    const response = await fetch(url + '?hash=' + hash, https_headers);
+    const response = await fetch(url + '?eq_hash=' + hash, https_headers);
     const data = await response.json();
     const specs = peq2graph(data.freq, data.spl);
     Plotly.newPlot(div, specs[0], specs[1], specs[2]);
@@ -577,7 +577,7 @@ async function plotlyIIR(div, hash) {
     if (hash === null || hash.length !== 128) {
         return;
     }
-    const response = await fetch(url + '?hash=' + hash, https_headers);
+    const response = await fetch(url + '?eq_hash=' + hash, https_headers);
     const data = await response.json();
     const specs = iir2graph(data.freq, data.spl);
     Plotly.newPlot(div, specs[0], specs[1], specs[2]);
@@ -667,7 +667,7 @@ async function convertState(method) {
     // remove old blocks if we have some
     const panel = stepConvert.querySelector('#convertEQ');
     cleanupPanel(panel);
-     // add new blocks
+    // add new blocks
     for (let k = 0; k < state.length(); k++) {
         const fragment = new DocumentFragment();
         const div = document.createElement('div');
@@ -722,20 +722,23 @@ async function convertState(method) {
         } else if (method === 'rmetmeq') {
             await rmetotalmixchannel.display(name, eRmeTotalMixChannel, hash);
         } else if (method === 'rmetmreq') {
-	    let l = 0;
-	    let r = 1;
-	    const optionsLeft = stepConvert.querySelector('#selectLeftChannel').options;
-	    const indexLeft = optionsLeft.selectedIndex;
-	    if (indexLeft !== -1 ) {
-		l = parseInt(optionsLeft[indexLeft].value);
-	    }
-	    const optionsRight = stepConvert.querySelector('#selectRightChannel').options;
-	    const indexRight = optionsRight.selectedIndex;
-	    if (indexRight !== -1 ) {
-		r = parseInt(optionsRight[indexRight].value);
-	    }
+            let l = 0;
+            let r = 1;
+            const optionsLeft = stepConvert.querySelector('#selectLeftChannel').options;
+            const indexLeft = optionsLeft.selectedIndex;
+            if (indexLeft !== -1) {
+                l = parseInt(optionsLeft[indexLeft].value);
+            }
+            const optionsRight = stepConvert.querySelector('#selectRightChannel').options;
+            const indexRight = optionsRight.selectedIndex;
+            if (indexRight !== -1) {
+                r = parseInt(optionsRight[indexRight].value);
+            }
             const hashL = state.hash(l);
-            const hashR = state.hash(r);
+            let hashR = hashL;
+            if (state.length() > 1) {
+                hashR = state.hash(r);
+            }
             await rmetotalmixroom.display('roomeq.txt', eRmeTotalMixRoom, hashL, hashR);
         }
     }
@@ -787,47 +790,59 @@ window.onload = () => {
             await convertCleanup();
         } else {
             await plotState();
-	    show(stepConvert);
+            show(stepConvert);
         }
     };
 
     formConvertSelect.onchange = async () => {
-	const value = formConvertSelect.value;
-	const leftChannel = stepConvert.querySelector('#leftChannel');
-	const rightChannel = stepConvert.querySelector('#rightChannel');
-	if ( value === 'rmetmreq' && state.length()>1 ) {
-	    const selectLeftChannel = leftChannel.querySelector('#selectLeftChannel');
-	    const selectRightChannel = rightChannel.querySelector('#selectRightChannel');
-	    for( let k=0 ; k<state.length() ; k++ ) {
-            const option = document.createElement('option');
-            option.setAttribute('value', k.toString());
-            option.innerHTML = state.name(k);
-            const option2 = option.cloneNode(true);
-            if (k === 0 ) {
-                selectRightChannel.appendChild(option);
-                option2.setAttribute('selected', 'true');
-                selectLeftChannel.appendChild(option2);
-            } else if (k === 1 ) {
-                selectLeftChannel.appendChild(option);
-                option2.setAttribute('selected', 'true');
-                selectRightChannel.appendChild(option2);
-            } else {
-                selectLeftChannel.appendChild(option);
-                selectRightChannel.appendChild(option2);
+        const value = formConvertSelect.value;
+        const leftChannel = stepConvert.querySelector('#leftChannel');
+        const rightChannel = stepConvert.querySelector('#rightChannel');
+        if (value === 'rmetmreq') {
+            if (state.length() > 1) {
+                const selectLeftChannel = leftChannel.querySelector('#selectLeftChannel');
+                const selectRightChannel = rightChannel.querySelector('#selectRightChannel');
+                for (let k = 0; k < state.length(); k++) {
+                    const option = document.createElement('option');
+                    option.setAttribute('value', k.toString());
+                    option.innerHTML = state.name(k);
+                    const option2 = option.cloneNode(true);
+                    if (k === 0) {
+                        selectRightChannel.appendChild(option);
+                        option2.setAttribute('selected', 'true');
+                        selectLeftChannel.appendChild(option2);
+                    } else if (k === 1) {
+                        selectLeftChannel.appendChild(option);
+                        option2.setAttribute('selected', 'true');
+                        selectRightChannel.appendChild(option2);
+                    } else {
+                        selectLeftChannel.appendChild(option);
+                        selectRightChannel.appendChild(option2);
+                    }
+                }
+            } else if (state.length() === 1) {
+                const selectLeftChannel = leftChannel.querySelector('#selectLeftChannel');
+                const selectRightChannel = rightChannel.querySelector('#selectRightChannel');
+                const optionL = document.createElement('option');
+                optionL.setAttribute('value', '0');
+                optionL.innerHTML = state.name(0);
+                const optionR = optionL.cloneNode(true);
+                optionL.setAttribute('selected', 'true');
+                optionR.setAttribute('selected', 'true');
+                selectLeftChannel.appendChild(optionL);
+                selectRightChannel.appendChild(optionR);
             }
+            show(leftChannel);
+            show(rightChannel);
+        } else {
+            hide(leftChannel);
+            hide(rightChannel);
         }
-
-        show(leftChannel);
-	    show(rightChannel);
-	} else {
-	    hide(leftChannel);
-	    hide(rightChannel);
-	}
     };
 
     formConvertSubmit.onclick = async () => {
         await convertState(formConvertSelect.value);
-	show(stepConvert);
+        show(stepConvert);
     };
 
     document.querySelectorAll('.panel').forEach((panel) => {

@@ -30,13 +30,13 @@ tar zxvf /home/$USER/deploy/backend.tgz -C "$BACK"
 
 if test -d "$BACK/venv"; then
     . "$BACK/venv/bin/activate"
-    pip3 install -U -r requirements.txt
+    pip3 install -U -r "$BACK/requirements.txt"
 else
     sudo apt install python3-full python3-pip
     cd "$BACK"
     python3 -m venv venv
     . venv/bin/activate
-    pip3 install -r requirements.txt
+    pip3 install -r "$BACK/requirements.txt"
 fi
 chown -R $USER:$USER "$BACK"
 

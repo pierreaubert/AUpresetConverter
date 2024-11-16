@@ -13,10 +13,10 @@ import sqlite3
 from fastapi import FastAPI, Depends, UploadFile, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.middleware.cors import CORSMiddleware
+import numpy as np
+from pydantic import BaseModel, Field, StringConstraints
 from starlette.responses import JSONResponse
 import uvicorn
-from pydantic import BaseModel, Field, StringConstraints
-import numpy as np
 
 from iir.filter_iir import Biquad
 from iir.filter_peq import peq_format_apo, peq_build
@@ -52,7 +52,7 @@ SERVER = "https://eqconverter.spinorama.org/{}".format(API_VERSION)
 
 if ENV == "dev":
     SERVER = "http://127.0.0.1:8000/{}".format(API_VERSION)
-    SPIN = "/Users/pierrre/src/spinorama/docs/json"
+    SPIN = "/Users/pierre/src/spinorama/docs/json"
     METADATA = f"{SPIN}/metadata.json"
     EQDATA = f"{SPIN}/eqdata.json"
     FASTAPI_DEBUG = True
@@ -68,10 +68,12 @@ HashStr = Annotated[
     str, StringConstraints(min_length=128, max_length=128, pattern=r"[a-z0-9]+")
 ]
 
+
 def check_hash(input: str) -> bool:
     if len(input) != 128:
         return False
     return re.search("^[a-z0-9]+$", input)
+
 
 class EQ(BaseModel):
     eq_hash: HashStr
@@ -127,7 +129,7 @@ def db_get_eq(eq_hash: str) -> tuple[str, IIR]:
     if not check_hash(eq_hash):
         return "error", []
     results = cursor.execute(
-        "SELECT name, peq from eqs where eq_hash='{}';".format(eq_hash) # noqa: S608
+        "SELECT name, peq from eqs where eq_hash='{}';".format(eq_hash)  # noqa: S608
     ).fetchone()
     connection.commit()
     connection.close()
@@ -141,6 +143,7 @@ def db_get_eq(eq_hash: str) -> tuple[str, IIR]:
 # ----------------------------------------------------------------------
 # load various data
 # ----------------------------------------------------------------------
+
 
 def load_metadata():
     if not os.path.exists(METADATA):
@@ -381,7 +384,9 @@ async def get_eq_rme_totalmix_channel(eq_hash: str):
 @backend.get(f"/{API_VERSION}/eq/target/rme_totalmix_room", tags=["EQ"])
 async def get_eq_rme_totalmix_room(eq_hash_left: str, eq_hash_right: str):
     _, iir_left = db_get_eq(eq_hash_left)
-    _, iir_right = db_get_eq(eq_hash_right)
+    iir_right = iir_left
+    if eq_hash_right != "":
+        _, iir_right = db_get_eq(eq_hash_right)
     success, content = iir2rme_totalmix_room(iir_left, iir_right)
     if not success:
         raise HTTPException(
@@ -420,7 +425,7 @@ if __name__ == "__main__":
     if ENV == "dev":
         uvicorn.run(
             "backend:backend",
-            host="0.0.0.0",  # noqa: S104
+            host="127.0.0.1",
             port=8000,
         )
     else:

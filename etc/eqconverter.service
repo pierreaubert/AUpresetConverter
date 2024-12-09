@@ -1,6 +1,6 @@
 [Unit]
 Description=EQ Converter Service
-After=network-online.target
+After=default.target
 
 [Service]
 StandardOutput=journal

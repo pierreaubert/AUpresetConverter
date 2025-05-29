@@ -2,7 +2,7 @@
 # script to run the deployment frontend
 # note the various sudo commands
 
-USER=pierre
+USER=spin
 WWW=/var/www/html/spinorama-eqconverter
 BACK=/home/$USER/run/eqconverter
 DEPLOY=/home/$USER/deploy

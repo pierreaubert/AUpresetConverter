@@ -1,16 +1,16 @@
 {
   "dependencies": {
-    "bulma": "^1.0.2",
-    "npm": "^10.9.0",
-    "plotly.js-dist-min": "^2.35.2"
+    "bulma": "^1.0.4",
+    "npm": "^11.5.2",
+    "plotly.js-dist-min": "^3.1.0"
   },
   "devDependencies": {
-    "eslint": "^9.13.0",
-    "eslint-config-prettier": "^9.1.0",
-    "npm-check-updates": "^18.0.1",
-    "oxlint": "^0.10.3",
-    "prettier": "^3.3.3",
-    "w3c-html-validator": "^1.8.2"
+    "eslint": "^9.33.0",
+    "eslint-config-prettier": "^10.1.8",
+    "npm-check-updates": "^18.0.2",
+    "oxlint": "^1.11.1",
+    "prettier": "^3.6.2",
+    "w3c-html-validator": "^1.9.1"
   },
   "scripts": {
     "format": "prettier",

@@ -153,9 +153,10 @@ function assignDiv(selector, dataList, defText, selected) {
         if (element === selected) {
             currentOption.selected = true;
         }
-        if (dataList.length === 1) {
-            currentOption.disabled = true;
-        }
+//        if (dataList.length === 1) {
+//            currentOption.disabled = true;
+//            currentOption.selected = true;
+//        }
         selector.appendChild(currentOption);
     }
 }

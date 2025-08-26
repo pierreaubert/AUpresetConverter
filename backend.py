@@ -41,6 +41,7 @@ SOFTWARE_VERSION = f"{API_VERSION}.{CURRENT_VERSION}"
 # env variables
 # ----------------------------------------------------------------------
 
+HOME = os.getenv("HOME", "spin")
 ENV = os.getenv("EQCONVERTER_ENV", "dev")
 
 FILES = "/var/www/html/spinorama-eqconverter"
@@ -52,7 +53,7 @@ SERVER = "https://eqconverter.spinorama.org/{}".format(API_VERSION)
 
 if ENV == "dev":
     SERVER = "http://127.0.0.1:8000/{}".format(API_VERSION)
-    SPIN = "/Users/pierre/src/spinorama/docs/json"
+    SPIN = "{}/src/spinorama/docs/json".format(HOME)
     METADATA = f"{SPIN}/metadata.json"
     EQDATA = f"{SPIN}/eqdata.json"
     FASTAPI_DEBUG = True

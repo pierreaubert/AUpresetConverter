@@ -40,6 +40,10 @@ else
 fi
 chown -R $USER:$USER "$BACK"
 
+# you can also use supervisor
+# cp "${DEPLOY}/etc/eqconverter.conf" "/etc/supervisord/conf.d"
+# systemctl restart supervisord.service
+
 # systemd
 mkdir -p /home/$USER/.config/systemd/user
 cp "${DEPLOY}/etc/eqconverter.service" "/home/${USER}/.config/systemd/user"
@@ -48,3 +52,5 @@ systemctl --user daemon-reload
 systemctl --user restart eqconverter.service
 
 sudo systemctl restart nginx
+# or
+# sudo nginx -s reload

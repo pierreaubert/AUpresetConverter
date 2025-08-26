@@ -5,7 +5,7 @@ After=default.target
 [Service]
 StandardOutput=journal
 Environment="EQCONVERTER_ENV=prod"
-ExecStart=/bin/bash -c 'cd /home/pierre/run/eqconverter && source ./venv/bin/activate && python3 ./backend.py'
+ExecStart=/bin/bash -c 'cd /home/spin/run/eqconverter && source ./venv/bin/activate && python3 ./backend.py'
 Restart=on-failure
 RestartSec=10
 

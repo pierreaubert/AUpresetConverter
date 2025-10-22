@@ -392,14 +392,14 @@ class AUPreset extends Format {
 
     async download(fileName, hash) {
         const url = backend + '/eq/target/aupreset';
-        const response = await fetch(url + 'eq_?hash=' + hash, https_headers);
+        const response = await fetch(url + '?eq_hash=' + hash, https_headers);
         const data = await response.json();
 
         let aupresetName = fileName;
         if (aupresetName.length > 4) {
             aupresetName = fileName.slice(0, -4) + '.aupreset';
         }
-        downloadViaData(aupresetName, 'xml', data);
+        downloadViaData(aupresetName, 'xml', data[1]);
     }
 }
 
@@ -445,7 +445,7 @@ class RmeTotalMixRoom extends Format {
     }
 
     async download(fileName, hash0, hash1) {
-        const url = backend + '/eq/target/rme_totalmix_channel';
+        const url = backend + '/eq/target/rme_totalmix_room';
         const response = await fetch(url + '?eq_hash_left=' + hash0 + '&eq_hash_right=' + hash1, https_headers);
         const data = await response.json();
 

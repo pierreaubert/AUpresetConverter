@@ -116,6 +116,8 @@ def iir2peq(iir: IIR) -> Peq:
             "LS": Biquad.LOWSHELF,
             "HS": Biquad.HIGHSHELF,
             "BP": Biquad.BANDPASS,
+            "LSC": Biquad.LOWSHELF,  # Low Shelf Cut - use same as Low Shelf
+            "HSC": Biquad.HIGHSHELF,  # High Shelf Cut - use same as High Shelf
         }.get(str(biquad["type"]))
         if biquad_type is None:
             continue
@@ -219,6 +221,8 @@ def iir2data(iir: IIR) -> tuple[STATUS, int, str]:
             "HP": kAUNBandEQFilterType_ResonantHighPass,
             "LP": kAUNBandEQFilterType_ResonantLowPass,
             "BP": kAUNBandEQFilterType_BandPass,
+            "LSC": kAUNBandEQFilterType_ResonantLowShelf,  # Low Shelf Cut
+            "HSC": kAUNBandEQFilterType_ResonantHighShelf,  # High Shelf Cut
         }.get(t, -1)
         if val == -1:
             print(
@@ -332,6 +336,14 @@ def type2rme(t: str, pos: int) -> float:
             return 3.0
     elif t == "LS":  # noqa: SIM102
         if pos == 3:
+            return 2.0
+    elif t == "LSC":  # Low Shelf Cut - treat same as LS
+        if pos == 3:
+            return 2.0
+    elif t == "HSC":  # High Shelf Cut - treat same as HS
+        if pos == 1:
+            return 3.0
+        elif pos == 3:
             return 2.0
     return -1.0
 

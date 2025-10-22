@@ -237,7 +237,9 @@ async function setSpeakerEQ(speakerName) {
     const labels = data.map((v) => v['name']);
 
     if (selectSpeakerEQ) {
-        assignDiv(selectSpeakerEQ, labels, 'Select an EQ ...', '');
+        // If there's only one EQ, auto-select it
+        const autoSelected = labels.length === 1 ? labels[0] : '';
+        assignDiv(selectSpeakerEQ, labels, 'Select an EQ ...', autoSelected);
         show(selectSpeakerEQ);
     } else {
         hide(selectSpeakerEQ);
@@ -263,6 +265,13 @@ async function setSpeakerEQ(speakerName) {
             await convertCleanup();
         }
     };
+    
+    // If there's only one EQ, automatically trigger the selection
+    if (labels.length === 1) {
+        // Trigger the onchange event for auto-selection
+        selectSpeakerEQ.dispatchEvent(new Event('change'));
+    }
+    
     return true;
 }
 

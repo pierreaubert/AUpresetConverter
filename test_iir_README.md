@@ -28,6 +28,20 @@ Lightweight test suite that doesn't require numpy:
 **Requirements**: None (pure Python)  
 **Usage**: `python3 test_iir_basic.py`
 
+### `test_peq.py` - PEQ Module Tests
+Comprehensive test suite for the Parametric EQ module (`iir/filter_peq.py`):
+
+- **Frequency Response Building**: Tests `peq_build()` function
+- **Preamp Gain Calculation**: Tests standard and conservative methods
+- **APO Format Generation**: Tests `peq_format_apo()` output
+- **Debug Output**: Tests `peq_print()` function
+- **Integration Tests**: End-to-end validation of PEQ pipeline
+- **All Filter Types**: PK, LS, HS, LP, HP, BP, NO
+
+**Requirements**: numpy, iir module
+**Usage**: `python3 test_peq.py`
+**Documentation**: See `test_peq_README.md` for detailed information
+
 ## Test Coverage
 
 ### Math Functions

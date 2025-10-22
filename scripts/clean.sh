@@ -7,5 +7,7 @@ rm -f uploaded_files/*
 rm -f eqs.db
 rm -fr venv node_modules
 rm -f ETAGS TAGS
+rm -f *.log
+
 
 

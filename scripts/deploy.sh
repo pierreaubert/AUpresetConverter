@@ -14,16 +14,6 @@ sudo mkdir -p "$WWW"
 sudo tar zxvf /home/$USER/deploy/frontend.tgz -C "$WWW"
 sudo chown -R $USER:$USER "$WWW"
 
-# nginx conf
-sudo cp etc/nginx-prod.conf /etc/nginx/sites-available/spinorama-eqconverter
-status=$(sudo nginx -t)
-if test -z "$status"; then
-    echo "OK after checking nginx config!"
-else
-    echo "KO after checking nginx config!"
-    exit 1;
-fi
-
 # backend code
 mkdir -p "$BACK"
 tar zxvf /home/$USER/deploy/backend.tgz -C "$BACK"
@@ -40,17 +30,37 @@ else
 fi
 chown -R $USER:$USER "$BACK"
 
-# you can also use supervisor
-# cp "${DEPLOY}/etc/eqconverter.conf" "/etc/supervisord/conf.d"
-# systemctl restart supervisord.service
+# ----------------------------------------------------------------------
+# 2 options for running
+# ----------------------------------------------------------------------
+# 1. with supervisor
+sudo cp "${DEPLOY}/etc/eqconverter.conf" "/etc/supervisord/conf.d"
+# prevent issue if own by root
+sudo rm -f /home/spin/run/gunicorn.sock
+# reload / update / restart
+sudo supervisorctl reload
+sudo supervisorctl update
+sudo supervisorctl restart eqconverter
 
-# systemd
-mkdir -p /home/$USER/.config/systemd/user
-cp "${DEPLOY}/etc/eqconverter.service" "/home/${USER}/.config/systemd/user"
+# 2. systemd
+# mkdir -p /home/$USER/.config/systemd/user
+# cp "${DEPLOY}/etc/eqconverter.service" "/home/${USER}/.config/systemd/user"
 
-systemctl --user daemon-reload
-systemctl --user restart eqconverter.service
+# systemctl --user daemon-reload
+# systemctl --user restart eqconverter.service
 
-sudo systemctl restart nginx
+# ----------------------------------------------------------------------
+# Reverse proxy: nginx conf
+# ----------------------------------------------------------------------
+sudo cp etc/nginx-prod.conf /etc/nginx/sites-available/spinorama-eqconverter
+status=$(sudo nginx -t)
+if test -z "$status"; then
+    echo "OK after checking nginx config!"
+else
+    echo "KO after checking nginx config!"
+    exit 1;
+fi
+
+# sudo systemctl restart nginx
 # or
 # sudo nginx -s reload

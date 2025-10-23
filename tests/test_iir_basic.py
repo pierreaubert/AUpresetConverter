@@ -103,7 +103,7 @@ class TestIIRImports(unittest.TestCase):
         try:
             # Try to import just the constants by reading the file
             import os
-            iir_path = os.path.join(os.path.dirname(__file__), 'iir', 'filter_iir.py')
+            iir_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'iir', 'filter_iir.py')
             
             if os.path.exists(iir_path):
                 with open(iir_path, 'r') as f:
@@ -126,7 +126,7 @@ class TestIIRImports(unittest.TestCase):
         """Test filter_peq structure without importing"""
         try:
             import os
-            peq_path = os.path.join(os.path.dirname(__file__), 'iir', 'filter_peq.py')
+            peq_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'iir', 'filter_peq.py')
             
             if os.path.exists(peq_path):
                 with open(peq_path, 'r') as f:

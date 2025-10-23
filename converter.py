@@ -321,34 +321,94 @@ def iir2aupreset(iir: list, name: str) -> tuple[STATUS, str]:
 # ----------------------------------------------------------------------
 
 
+def get_filter_priority(filter_type: str) -> int:
+    """Get priority for filter type (higher number = higher priority).
+    
+    Args:
+        filter_type: The type of filter (PK, LS, HS, LSC, HSC, LP, HP, etc.)
+        
+    Returns:
+        Priority value (higher = more important to keep)
+    """
+    priorities = {
+        'LSC': 10,  # Low shelf cut - very important for overall curve
+        'HSC': 10,  # High shelf cut - very important for overall curve
+        'LS': 9,    # Low shelf - important for overall curve
+        'HS': 9,    # High shelf - important for overall curve
+        'LP': 7,    # Low pass - medium priority
+        'HP': 7,    # High pass - medium priority
+        'BP': 5,    # Band pass - lower priority
+        'PK': 3,    # Peak - lowest priority (most common, easiest to sacrifice)
+    }
+    return priorities.get(filter_type, 1)  # Default to low priority
+
+
+def filter_iirs_by_gain(iirs: list, max_count: int) -> list:
+    """Filter IIRs while preserving order and prioritizing important filter types.
+    
+    Args:
+        iirs: List of IIR filter dictionaries in original order
+        max_count: Maximum number of IIRs to keep
+        
+    Returns:
+        List of IIRs in original order, limited to max_count, with low-priority/low-gain filters removed
+    """
+    if len(iirs) <= max_count:
+        return iirs
+    
+    # Create list of (index, iir, priority, abs_gain) for sorting
+    indexed_iirs = []
+    for i, iir in enumerate(iirs):
+        priority = get_filter_priority(iir.get('type', 'PK'))
+        abs_gain = abs(iir.get('gain', 0.0))
+        indexed_iirs.append((i, iir, priority, abs_gain))
+    
+    # Sort by priority (descending) then by absolute gain (descending)
+    # This puts high-priority, high-gain filters first
+    indexed_iirs.sort(key=lambda x: (x[2], x[3]), reverse=True)
+    
+    # Take the top max_count filters
+    selected = indexed_iirs[:max_count]
+    
+    # Sort selected filters back to original order by index
+    selected.sort(key=lambda x: x[0])
+    
+    # Extract just the IIR dictionaries
+    return [item[1] for item in selected]
+
+
 def type2rme(t: str, pos: int) -> float:
+    # ---------------
+    # pk       = 0
+    # shelving = 1
+    # low pass = 3 if first one and 2 is last one
+    # high pass = 2 if first one and 3 is last one
+    # ---------------
     if t == "PK":
         return 0.0
     elif t == "LP":
         if pos == 1:
             return 3.0
-    elif pos == 3:
-        return 2.0
+        elif pos == 3 or pos == 9:
+            return 2.0
     elif t == "HP":
         if pos == 1:
             return 2.0
-        elif pos == 3:
+        elif pos == 3 or pos == 9:
             return 3.0
-    elif t == "LS":  # noqa: SIM102
-        if pos == 3:
-            return 2.0
-    elif t == "LSC":  # Low Shelf Cut - treat same as LS
-        if pos == 3:
-            return 2.0
-    elif t == "HSC":  # High Shelf Cut - treat same as HS
-        if pos == 1:
-            return 3.0
-        elif pos == 3:
-            return 2.0
+    elif t in ("HS", "HSC", "LS", "LSC") and (pos == 1 or pos == 3 or pos == 9):
+        return 1.0
+
+    # either wrong position or unknown type
     return -1.0
 
 
 def iir2rme_totalmix_channel(iirs: list) -> tuple[STATUS, str]:
+    # Check IIR filter limit for TotalMix channel EQ (max 3 bands)
+    if len(iirs) > 3:
+        print(f"Error: TotalMix channel EQ supports a maximum of 3 bands. {len(iirs)} bands were provided.")
+        return False, ""
+
     lines = []
     lines.append("<Preset>")
     lines.append("  <Equalizer>")
@@ -386,6 +446,24 @@ def iir2rme_totalmix_channel(iirs: list) -> tuple[STATUS, str]:
 
 
 def iir2rme_totalmix_room(left: list, right: list) -> tuple[STATUS, str]:
+    # Check IIR filter limits for TotalMix room EQ (max 9 bands per channel)
+    original_left_count = len(left)
+    original_right_count = len(right)
+
+    # Filter left channel if needed
+    if len(left) > 9:
+        left = filter_iirs_by_gain(left, 9)
+
+    # Filter right channel if needed
+    if len(right) > 9:
+        right = filter_iirs_by_gain(right, 9)
+
+    # Print warning if any channel was filtered
+    if original_left_count > 9 or original_right_count > 9:
+        print(f"Warning: TotalMix room EQ supports a maximum of 9 bands per channel. "
+              f"Left channel has {original_left_count} bands, right channel has {original_right_count} bands. "
+              f"Keeping the 9 bands with highest absolute gain.")
+
     lines = []
 
     def process(iirs: list):
@@ -406,10 +484,11 @@ def iir2rme_totalmix_room(left: list, right: list) -> tuple[STATUS, str]:
                     i + 1, iir["gain"]
                 )
             )
+
         for i, iir in enumerate(iirs):
             rme = type2rme(iir["type"], i + 1)
             if rme == -1:
-                print("skip eq {} type is unknown {}", i, iir["type"])
+                print("skip eq at pos {} type is unknown {}", i+1, iir["type"])
                 continue
             lines.append(
                 '        <val e="REQ Band{} Type" v="{:4.2f},"/>'.format(

@@ -559,7 +559,7 @@ class TestPEQWithoutNumpy(unittest.TestCase):
         """Test that PEQ module has expected functions"""
         try:
             import os
-            peq_path = os.path.join(os.path.dirname(__file__), 'iir', 'filter_peq.py')
+            peq_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'iir', 'filter_peq.py')
             
             if os.path.exists(peq_path):
                 with open(peq_path, 'r') as f:

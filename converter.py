@@ -445,7 +445,61 @@ def iir2rme_totalmix_channel(iirs: list) -> tuple[STATUS, str]:
     return True, "\n".join(lines)
 
 
+def enforce_rme_room_filter_constraints(iirs: list) -> list:
+    """Enforce RME room EQ constraints on LSC and HSC filters.
+    
+    Args:
+        iirs: List of IIR filter dictionaries
+        
+    Returns:
+        List of IIRs with RME room EQ constraints applied:
+        - At most 1 LSC filter (positioned first if present)
+        - At most 1 HSC filter (positioned last if present)
+        - Other filters preserved in their relative order
+    """
+    if not iirs:
+        return iirs
+    
+    # Separate filters by type
+    lsc_filters = []
+    hsc_filters = []
+    other_filters = []
+    
+    for iir in iirs:
+        filter_type = iir.get('type', '')
+        if filter_type == 'LSC':
+            lsc_filters.append(iir)
+        elif filter_type == 'HSC':
+            hsc_filters.append(iir)
+        else:
+            other_filters.append(iir)
+    
+    # Select at most one LSC filter (prefer highest absolute gain)
+    selected_lsc = None
+    if lsc_filters:
+        selected_lsc = max(lsc_filters, key=lambda x: abs(x.get('gain', 0.0)))
+    
+    # Select at most one HSC filter (prefer highest absolute gain)
+    selected_hsc = None
+    if hsc_filters:
+        selected_hsc = max(hsc_filters, key=lambda x: abs(x.get('gain', 0.0)))
+    
+    # Reorder: LSC first, other filters in middle, HSC last
+    result = []
+    if selected_lsc:
+        result.append(selected_lsc)
+    result.extend(other_filters)
+    if selected_hsc:
+        result.append(selected_hsc)
+    
+    return result
+
+
 def iir2rme_totalmix_room(left: list, right: list) -> tuple[STATUS, str]:
+    # Apply RME room EQ constraints for LSC and HSC filters
+    left = enforce_rme_room_filter_constraints(left)
+    right = enforce_rme_room_filter_constraints(right)
+    
     # Check IIR filter limits for TotalMix room EQ (max 9 bands per channel)
     original_left_count = len(left)
     original_right_count = len(right)

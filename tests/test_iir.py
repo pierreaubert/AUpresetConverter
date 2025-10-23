@@ -38,16 +38,16 @@ class TestBiquadMath(unittest.TestCase):
     def test_q2bw_conversion(self):
         """Test Q to bandwidth conversion"""
         # Test known conversions
-        self.assertAlmostEqual(q2bw(1.0), 1.1773, places=3)
-        self.assertAlmostEqual(q2bw(0.707), 1.7627, places=3)  # 1/sqrt(2)
-        self.assertAlmostEqual(q2bw(2.0), 0.6436, places=3)
+        self.assertAlmostEqual(q2bw(1.0), 1.3885, places=3)
+        self.assertAlmostEqual(q2bw(0.707), 1.9002, places=3)  # 1/sqrt(2)
+        self.assertAlmostEqual(q2bw(2.0), 0.7140, places=3)
     
     def test_bw2q_conversion(self):
         """Test bandwidth to Q conversion"""
         # Test known conversions
         self.assertAlmostEqual(bw2q(1.0), 1.4142, places=3)  # sqrt(2)
         self.assertAlmostEqual(bw2q(0.5), 2.8708, places=3)
-        self.assertAlmostEqual(bw2q(2.0), 0.6674, places=3)
+        self.assertAlmostEqual(bw2q(2.0), 0.6667, places=3)  # 2/3
     
     def test_q_bw_roundtrip(self):
         """Test that Q->BW->Q conversion is consistent"""

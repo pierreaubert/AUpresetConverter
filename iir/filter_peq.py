@@ -9,10 +9,11 @@ from iir.filter_iir import Biquad, Vector, Peq
 
 def peq_build(freq: Vector, peq: Peq) -> Vector:
     """compute SPL for each frequency"""
-    current_filter = [0.0]
+    freq_array = np.asarray(freq)
+    current_filter = np.zeros_like(freq_array, dtype=float)
     if len(peq) > 0:
         for w, iir in peq:
-            current_filter += np.multiply(w, iir.np_log_result(freq))
+            current_filter += np.multiply(w, iir.np_log_result(freq_array))
     return current_filter
 
 

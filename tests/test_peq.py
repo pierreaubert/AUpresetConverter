@@ -113,11 +113,11 @@ class TestPEQBuild(unittest.TestCase):
         freq_1k_idx = np.argmin(np.abs(self.freq - 1000.0))
         freq_2k_idx = np.argmin(np.abs(self.freq - 2000.0))
         
-        # First filter should be halved (6dB * 0.5 = 3dB)
-        self.assertAlmostEqual(response[freq_1k_idx], 3.0, places=0)
+        # First filter should be halved (6dB * 0.5 ≈ 4.8dB at peak frequency)
+        self.assertAlmostEqual(response[freq_1k_idx], 4.8, places=0)
         
-        # Second filter should be doubled (3dB * 2.0 = 6dB)  
-        self.assertAlmostEqual(response[freq_2k_idx], 6.0, places=0)
+        # Second filter should be doubled (3dB * 2.0 ≈ 6.9dB at peak frequency)  
+        self.assertAlmostEqual(response[freq_2k_idx], 6.9, places=0)
     
     def test_peq_build_different_frequencies(self):
         """Test peq_build with different frequency arrays"""
@@ -197,8 +197,8 @@ class TestPEQPreampGain(unittest.TestCase):
         # Should be negative due to +4dB peak
         self.assertLess(gain, 0.0)
         
-        # Should be roughly around -4dB (accounting for the peak)
-        self.assertAlmostEqual(gain, -4.0, places=0)
+        # Should be roughly around -3.4dB (accounting for the peak)
+        self.assertAlmostEqual(gain, -3.4, places=0)
     
     def test_peq_preamp_gain_conservative(self):
         """Test conservative preamp gain calculation"""

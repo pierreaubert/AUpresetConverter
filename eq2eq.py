@@ -60,9 +60,18 @@ def main():
     cond_too_short = len(sys.argv) < 5
     cond_too_long = len(sys.argv) > 8
     cond_no_input = sys.argv[1] != "-input"
-    files = sys.argv[2].split(",")
-    cond_input_exists = not os.path.exists(files[0])
-    cond_input_file = not os.path.isfile(files[0])
+    input_arg = sys.argv[2]
+    # Check if input exists as-is (single file with possible commas in name)
+    # or check first part if it contains comma separator
+    if os.path.exists(input_arg):
+        # File exists as-is, likely a single file with commas in name
+        cond_input_exists = False
+        cond_input_file = not os.path.isfile(input_arg)
+    else:
+        # Might be comma-separated list, check first file
+        first_file = input_arg.split(",")[0]
+        cond_input_exists = not os.path.exists(first_file)
+        cond_input_file = not os.path.isfile(first_file)
     cond_no_format = sys.argv[3] != "-format"
     cond_unknown_format = sys.argv[4] not in (
         "apo",
@@ -106,6 +115,8 @@ def main():
         sys.exit(-1)
 
     output_format = sys.argv[4]
+    # Split by comma only for formats that support multiple files
+    files = input_arg.split(",") if output_format == "rmetmreq" else [input_arg]
     rew_filename = files[0]
     rew_base = rew_filename
     dotpos = rew_filename.rfind(".")

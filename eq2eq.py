@@ -52,6 +52,11 @@ def usage():
 
 
 def main():
+    # Show help if no arguments provided or --help flag used
+    if len(sys.argv) == 1 or (len(sys.argv) == 2 and sys.argv[1] in ("-h", "--help")):
+        usage()
+        sys.exit(0)
+    
     cond_too_short = len(sys.argv) < 5
     cond_too_long = len(sys.argv) > 8
     cond_no_input = sys.argv[1] != "-input"
